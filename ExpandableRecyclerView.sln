@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32421.90
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpandableRecyclerView.Core", "ExpandableRecyclerView.Core\ExpandableRecyclerView.Core.csproj", "{85D56246-9601-4422-AC7E-BD8283D630BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpandableRecyclerView.DroidX", "ExpandableRecyclerView.DroidX\ExpandableRecyclerView.DroidX.csproj", "{0B6A6B7F-C358-45ED-A149-B7FB6E73B955}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{85D56246-9601-4422-AC7E-BD8283D630BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85D56246-9601-4422-AC7E-BD8283D630BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85D56246-9601-4422-AC7E-BD8283D630BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85D56246-9601-4422-AC7E-BD8283D630BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B6A6B7F-C358-45ED-A149-B7FB6E73B955}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B6A6B7F-C358-45ED-A149-B7FB6E73B955}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B6A6B7F-C358-45ED-A149-B7FB6E73B955}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B6A6B7F-C358-45ED-A149-B7FB6E73B955}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E0EA056C-CA5B-41BC-B0C5-F8F8A5130D7A}
+	EndGlobalSection
+EndGlobal

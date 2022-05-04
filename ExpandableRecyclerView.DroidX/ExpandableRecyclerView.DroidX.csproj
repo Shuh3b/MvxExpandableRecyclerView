@@ -1,0 +1,30 @@
+﻿<Project Sdk="MSBuild.Sdk.Extras">
+
+	<PropertyGroup>
+		<TargetFrameworks>monoandroid10.0;</TargetFrameworks>
+		<AssemblyName>MvvmCross.ExpandableRecyclerView.DroidX</AssemblyName>
+		<PackageId>MvvmCross.ExpandableRecyclerView.DroidX</PackageId>
+		<RootNamespace>MvvmCross.ExpandableRecyclerView.DroidX</RootNamespace>
+		<Authors>Mohammed Ali Ahmed</Authors>
+		<Company>Mohammed Ali Ahmed</Company>
+		<Product>MvvmCross.ExpandableRecyclerView</Product>
+		<Description>MvvmCross is the .NET MVVM framework for cross-platform solutions, including Xamarin iOS, Xamarin Android, Xamarin Forms, Windows and Mac.
+
+This is an unofficial package that contains an expandable AndroidX RecyclerView supported for MvvmCross.</Description>
+		<Copyright>2022</Copyright>
+		<PackageTags>mvvm mvvmcross xamarin android monoandroid monotouch xamarin.android net recyclerview</PackageTags>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MvvmCross" Version="8.0.2" />
+		<PackageReference Include="MvvmCross.DroidX.RecyclerView" Version="8.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ExpandableRecyclerView.Core\ExpandableRecyclerView.Core.csproj" />
+	</ItemGroup>
+
+</Project>
