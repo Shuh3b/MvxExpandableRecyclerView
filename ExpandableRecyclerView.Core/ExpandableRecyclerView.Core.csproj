@@ -3,11 +3,11 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<AssemblyName>MvvmCross.ExpandableRecyclerView.Core</AssemblyName>
-		<PackageId>MvvmCross.ExpandableRecyclerView.Core</PackageId>
+		<PackageId>MvxExpandableRecyclerView.Core</PackageId>
 		<RootNamespace>MvvmCross.ExpandableRecyclerView.Core</RootNamespace>
 		<Authors>Mohammed Ali Ahmed</Authors>
 		<Company>Mohammed Ali Ahmed</Company>
-		<Product>MvvmCross.ExpandableRecyclerView</Product>
+		<Product>MvxExpandableRecyclerView</Product>
 		<Description>MvvmCross is the .NET MVVM framework for cross-platform solutions, including Xamarin iOS, Xamarin Android, Xamarin Forms, Windows and Mac.
 
 This is an unofficial package that contains an expandable AndroidX RecyclerView supported for MvvmCross.</Description>
@@ -16,6 +16,10 @@ This is an unofficial package that contains an expandable AndroidX RecyclerView 
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<PackageProjectUrl></PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Shuh3b/MvxExpandableRecyclerView</RepositoryUrl>
+		<RepositoryType>GitHub</RepositoryType>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
 
 </Project>
