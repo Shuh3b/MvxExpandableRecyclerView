@@ -38,13 +38,15 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         /// <summary>
         /// Constructor.
         /// </summary>
-        public MvxExpandableRecyclerAdapter() : this(null) { }
+        public MvxExpandableRecyclerAdapter()
+            : this(null) { }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="bindingContext">Binding context.</param>
-        public MvxExpandableRecyclerAdapter(IMvxAndroidBindingContext bindingContext) : base(bindingContext) { }
+        public MvxExpandableRecyclerAdapter(IMvxAndroidBindingContext bindingContext)
+            : base(bindingContext) { }
 
         /// <summary>
         /// Get or set the <see cref="ICommand"/> to trigger when an item was swiped towards the start direction.
@@ -182,10 +184,8 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         protected override void SetItemsSource(IEnumerable value)
         {
             if (Looper.MainLooper != Looper.MyLooper())
-            {
                 MvxAndroidLog.Instance.Log(LogLevel.Error,
                     "ItemsSource property set on a worker thread. This leads to crash in the RecyclerView. It must be set only from the main thread.");
-            }
 
             if (ReferenceEquals(itemsSource, value) && !ReloadOnAllItemsSourceSets)
                 return;
@@ -194,10 +194,8 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
             subscription = null;
 
             if (value != null && !(value is IList<ITaskItem>))
-            {
                 MvxAndroidLog.Instance.Log(LogLevel.Error,
                     "ItemsSource property should inherit IList<ITaskItem>. If not, this will lead to items not displaying in the RecyclerView.");
-            }
 
             var val = value as IList<ITaskItem>;
 
@@ -213,6 +211,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
             {
                 itemsSource = val;
                 viewItemsSource = GenerateHeaders(val);
+                GenerateInitialHeaders();
             }
 
             NotifyDataSetChanged();
@@ -225,17 +224,13 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
                 return;
 
             if (Looper.MainLooper == Looper.MyLooper())
-            {
                 NotifyDataSetChanged(e);
-            }
             else
-            {
                 MvxAndroidLog.Instance.Log(LogLevel.Error,
                     $@"ItemsSource collection content changed on a worker thread.
 This leads to crash in the RecyclerView as it will not be aware of changes
 immediatly and may get a deleted item or update an item with a bad item template.
 All changes must be synchronized on the main thread.");
-            }
         }
 
         /// <inheritdoc/>
@@ -281,12 +276,12 @@ All changes must be synchronized on the main thread.");
         /// <inheritdoc/>
         public virtual void OnMove(RecyclerView.ViewHolder fromViewHolder, RecyclerView.ViewHolder toViewHolder)
         {
-            int toPosition = toViewHolder.BindingAdapterPosition;
+            int toPosition = toViewHolder.AdapterPosition;
 
             if (toPosition <= 0)
                 return;
 
-            int fromPosition = fromViewHolder.BindingAdapterPosition;
+            int fromPosition = fromViewHolder.AdapterPosition;
 
             var item = viewItemsSource[fromPosition];
             viewItemsSource.RemoveAt(fromPosition);
@@ -302,18 +297,16 @@ All changes must be synchronized on the main thread.");
                 if (direction == ItemTouchHelper.Start)
                 {
                     if (ItemSwipeStart == null)
-                    {
-                        throw new ArgumentNullException(nameof(ItemSwipeStart), $"Either implement swipe feature and bind to {nameof(ItemSwipeStart)} or disable swipe.");
-                    }
+                        throw new ArgumentNullException(nameof(ItemSwipeStart),
+                            $"Either implement swipe feature and bind to {nameof(ItemSwipeStart)} or disable swiping towards start direction.");
 
                     ExecuteCommandOnItem(ItemSwipeStart, holder.DataContext);
                 }
                 else if (direction == ItemTouchHelper.End)
                 {
                     if (ItemSwipeEnd == null)
-                    {
-                        throw new ArgumentNullException(nameof(ItemSwipeEnd), $"Either implement swipe feature and bind to {nameof(ItemSwipeEnd)} or disable swipe.");
-                    }
+                        throw new ArgumentNullException(nameof(ItemSwipeEnd),
+                            $"Either implement swipe feature and bind to {nameof(ItemSwipeEnd)} or disable swiping towards end direction.");
 
                     ExecuteCommandOnItem(ItemSwipeEnd, holder.DataContext);
                 }
@@ -323,7 +316,7 @@ All changes must be synchronized on the main thread.");
         /// <inheritdoc/>
         public virtual void OnClearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder)
         {
-            int itemPosition = viewHolder.BindingAdapterPosition;
+            int itemPosition = viewHolder.AdapterPosition;
 
             if (itemPosition <= 0)
                 return;
@@ -334,26 +327,141 @@ All changes must be synchronized on the main thread.");
             var previousHeader = GetHeader(item);
             var newHeader = GetHeader(aboveItem);
 
-            item.Sequence = newHeader.Sequence;
-            SequenceTaskItems(GetItemsInHeader(previousHeader));
+            if (previousHeader.Header.Equals(newHeader.Header))
+            {
+                int position = itemPosition - viewItemsSource.GetPosition(previousHeader) - 1;
+                item.Sequence = position;
+                previousHeader.Items.Remove(item);
+                previousHeader.Items.Insert(position, item);
+                return;
+            }
 
-            if (item.Header.Equals(aboveItem.Header))
+            if (TaskHeaderDragInDisabled(newHeader, item))
                 return;
 
-            if (TaskHeaderDisabled(newHeader, item))
-                return;
-
-            item.Header = newHeader.Model;
-            SequenceTaskItems(GetItemsInHeader(newHeader));
+            item.Header = newHeader.Header;
+            previousHeader.Items.Remove(item);
 
             if (newHeader.IsCollapsed)
             {
-                newHeader.CollapsedItems.Add(item);
+                item.Sequence = null;
+                newHeader.Items.Add(item);
                 viewItemsSource.Remove(item);
                 NotifyItemRemoved(itemPosition);
             }
+            else
+            {
+                int position = itemPosition - viewItemsSource.GetPosition(newHeader) - 1;
+                item.Sequence = position;
+                newHeader.Items.Insert(position, item);
+                NotifyItemChanged(itemPosition);
+            }
 
             RemoveTemporaryTaskHeader(previousHeader);
+        }
+
+        /// <summary>
+        /// Get headers.
+        /// </summary>
+        /// <returns>List of headers.</returns>
+        public IList<ITaskHeader> GetHeaders()
+        {
+            return viewItemsSource.Where(i => i is ITaskHeader).Cast<ITaskHeader>().ToList();
+        }
+
+        /// <summary>
+        /// Get header.
+        /// </summary>
+        /// <param name="item">Item to get header information from.</param>
+        /// <returns>Header matching item's header.</returns>
+        public ITaskHeader GetHeader(ITaskItem item)
+        {
+            return viewItemsSource.FirstOrDefault(i => i is ITaskHeader header && (header.Header.Equals(item.Header) || header.Items.Contains(item))) as ITaskHeader;
+        }
+
+        /// <summary>
+        /// Get items in header.
+        /// </summary>
+        /// <param name="header">Header.</param>
+        /// <returns>List of items with matching header.</returns>
+        public IList<ITaskItem> GetItemsInHeader(ITaskHeader header)
+        {
+            return header.Items;
+        }
+
+        /// <summary>
+        /// Get number of visible items shown under header.
+        /// </summary>
+        /// <param name="header">Header.</param>
+        /// <returns>Number of visible items with matching header.</returns>
+        public int CountVisibleItemsInHeader(ITaskHeader header)
+        {
+            return header.IsCollapsed ? 0 : header.Items.Count;
+        }
+
+        /// <summary>
+        /// Add headers to list, regardless of whether they have items associated with them or not.
+        /// </summary>
+        /// <returns>List of headers to display.</returns>
+        protected virtual IEnumerable<THeader> AddInitialHeaders()
+        {
+            return new List<THeader>();
+        }
+
+        /// <summary>
+        /// Generate headers based on item's distinct header.
+        /// </summary>
+        /// <param name="items">The items to show under distinct headers.</param>
+        /// <returns>List of items containing headers and items.</returns>
+        protected virtual IList<ITaskItem> GenerateHeaders(IEnumerable<ITaskItem> items)
+        {
+            var groupedItems = items.Where(i => !(i is ITaskHeader)).OrderBy(i => i.Header).GroupBy(i => i.Header);
+            List<ITaskItem> taskItems = new List<ITaskItem>();
+
+            foreach (var group in groupedItems)
+            {
+                var generatedHeader = GenerateHeader((THeader)group.Key);
+
+                if (group.Key == null)
+                {
+                    foreach (var item in group)
+                    {
+                        item.Header = generatedHeader.Header;
+                    }
+                }
+
+                if (taskItems.FirstOrDefault(item => item is ITaskHeader header && header.Header.Equals(generatedHeader.Header)) is ITaskHeader existingHeader)
+                {
+                    var headerItems = existingHeader.Items.ToList();
+                    existingHeader.Items.Clear();
+                    taskItems.RemoveAll(item => headerItems.Contains(item));
+                    headerItems.AddRange(group);
+
+                    int position = taskItems.GetPosition(existingHeader) + 1;
+
+                    foreach (var item in headerItems.OrderByDescending(i => i.Sequence.HasValue).ThenBy(i => i.Sequence))
+                    {
+                        existingHeader.Items.Add(item);
+                    }
+
+                    if (!existingHeader.IsCollapsed)
+                        taskItems.InsertRange(position, existingHeader.Items);
+                }
+                else
+                {
+                    foreach (var item in group.OrderByDescending(i => i.Sequence.HasValue).ThenBy(i => i.Sequence))
+                    {
+                        generatedHeader.Items.Add(item);
+                    }
+
+                    taskItems.Add(generatedHeader);
+
+                    if (!generatedHeader.IsCollapsed)
+                        taskItems.AddRange(generatedHeader.Items);
+                }
+            }
+
+            return taskItems;
         }
 
         /// <summary>
@@ -362,75 +470,32 @@ All changes must be synchronized on the main thread.");
         /// <para>IMPORTANT: If header is nullable, make sure to handle nullable type by using a non-null value. E.g. Header type with <c>int?</c> will use <c>-1</c> when <c>null</c>.</para>
         /// </summary>
         /// <param name="model">Model used for generating header.</param>
-        /// <returns>Header object used in <see cref="MvxExpandableRecyclerAdapter"/>.</returns>
-        public virtual ITaskHeader GenerateHeader(THeader model)
+        /// <returns>Header object used in <see cref="MvxExpandableRecyclerAdapter{THeader}"/>.</returns>
+        protected virtual ITaskHeader GenerateHeader(THeader model)
         {
             if (model == null)
-            {
-                MvxAndroidLog.Instance.Log(LogLevel.Warning,
+                MvxAndroidLog.Instance.Log(LogLevel.Error,
                     $@"The {nameof(model)} for header was null. Binding to ItemsSource will fail because grouping cannot be applied to null values.
 If header is nullable, make sure to override {nameof(GenerateHeader)}() and handle nullable types by using a non-null value. E.g. Header type with int? will use -1 when null.");
-            }
 
-            return new TaskHeader<THeader>(model.ToString(), model);
-        }
-
-        /// <summary>
-        /// Get headers.
-        /// </summary>
-        /// <returns>List of headers.</returns>
-        protected IList<ITaskHeader> GetHeaders()
-        {
-            return viewItemsSource.Where(i => i is ITaskHeader).Cast<ITaskHeader>().ToList();
-        }
-
-        /// <summary>
-        /// Get specific header.
-        /// </summary>
-        /// <param name="item">Item to get header information from.</param>
-        /// <returns>Header matching item's header.</returns>
-        protected ITaskHeader GetHeader(ITaskItem item)
-        {
-            return viewItemsSource.FirstOrDefault(i => i is ITaskHeader && i.Header.Equals(item.Header)) as ITaskHeader;
-        }
-
-        /// <summary>
-        /// Get items in specific header.
-        /// </summary>
-        /// <param name="header">Header.</param>
-        /// <returns>List of items with matching header.</returns>
-        protected IList<ITaskItem> GetItemsInHeader(ITaskHeader header)
-        {
-            return header.IsCollapsed
-                ? header.CollapsedItems
-                : viewItemsSource.Where(i => !(i is ITaskHeader) && i.Header.Equals(header.Model)).ToList();
-        }
-
-        /// <summary>
-        /// Get visible items shown in <see cref="MvxExpandableRecyclerView"/>.
-        /// </summary>
-        /// <param name="header">Header.</param>
-        /// <returns>List of visible items with matching header.</returns>
-        protected int GetVisibleItemsInHeader(ITaskHeader header)
-        {
-            return header.IsCollapsed ? 0 : viewItemsSource.Where(i => !(i is ITaskHeader) && i.Header.Equals(header.Model)).Count();
+            return new SimpleTaskHeader<THeader>(model?.ToString(), model);
         }
 
         private void OnHeaderViewClick(object sender, EventArgs e)
         {
             if (sender is MvxRecyclerViewHolder holder && holder.DataContext is ITaskHeader header)
             {
-                int position = holder.BindingAdapterPosition + 1;
+                int position = holder.AdapterPosition + 1;
 
                 if (header.IsCollapsed)
                 {
-                    var itemsToAdd = header.CollapsedItems;
+                    var itemsToAdd = GetItemsInHeader(header);
                     int pos = position;
                     foreach (var item in itemsToAdd)
                     {
                         viewItemsSource.Insert(pos++, item);
                     }
-                    header.CollapsedItems = null;
+                    header.IsCollapsed = false;
                     NotifyItemRangeInserted(position, itemsToAdd.Count);
                 }
                 else
@@ -440,36 +505,10 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
                     {
                         viewItemsSource.Remove(item);
                     }
-                    header.CollapsedItems = itemsToRemove;
+                    header.IsCollapsed = true;
                     NotifyItemRangeRemoved(position, itemsToRemove.Count);
                 }
             }
-        }
-
-        private IList<ITaskItem> GenerateHeaders(IEnumerable<ITaskItem> items)
-        {
-            var groupedItems = items.Where(i => !(i is ITaskHeader)).OrderBy(i => i.Header).GroupBy(i => i.Header);
-
-            return groupedItems.SelectMany(group =>
-            {
-                var header = GenerateHeader((THeader)group.Key);
-                List<ITaskItem> taskItems = new List<ITaskItem>
-                {
-                    header,
-                };
-
-                IList<ITaskItem> itemsWithNonNullableHeader = new List<ITaskItem>();
-
-                foreach (var item in group)
-                {
-                    item.Header = header.Model;
-                    itemsWithNonNullableHeader.Add(item);
-                }
-                var sequencedItems = itemsWithNonNullableHeader.OrderByDescending(i => i.Sequence.HasValue).ThenBy(i => i.Sequence).ToList();
-
-                taskItems.AddRange(sequencedItems);
-                return taskItems;
-            }).ToList();
         }
 
         private void NotifyDataSetAdded(NotifyCollectionChangedEventArgs e)
@@ -477,21 +516,25 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
             var newItems = e.NewItems.Cast<ITaskItem>().ToList();
             foreach (var item in newItems)
             {
-                var header = GetHeader(item);
+                var generatedHeader = GenerateHeader((THeader)item.Header);
 
-                if (header == null)
-                {
-                    header = GenerateHeader((THeader)item.Header);
-                    AddHeader(header);
-                }
+                var header = AddHeader(generatedHeader) ? generatedHeader : GetHeader(generatedHeader);
+
+                int headerPosition = viewItemsSource.GetPosition(header);
 
                 if (header.IsCollapsed)
                 {
-                    header.CollapsedItems.Add(item);
+                    if (item.Sequence.HasValue && item.Sequence.Value <= header.Items.Count)
+                        header.Items.Insert(item.Sequence.Value, item);
+                    else
+                        header.Items.Add(item);
                 }
                 else
                 {
-                    int position = viewItemsSource.GetPosition(header) + GetVisibleItemsInHeader(header) + 1;
+                    int position = item.Sequence.HasValue && item.Sequence.Value <= header.Items.Count
+                        ? headerPosition + item.Sequence.Value + 1
+                        : headerPosition + CountVisibleItemsInHeader(header) + 1;
+                    header.Items.Insert(position - headerPosition - 1, item);
                     viewItemsSource.Insert(position, item);
                     NotifyItemInserted(GetViewPosition(position));
                 }
@@ -514,15 +557,17 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
             var oldItems = e.OldItems.Cast<ITaskItem>().ToList();
             foreach (var item in oldItems)
             {
+                item.Sequence = null;
                 var header = GetHeader(item);
 
                 if (header.IsCollapsed)
                 {
-                    header.CollapsedItems.Remove(item);
+                    header.Items.Remove(item);
                 }
                 else
                 {
                     var position = viewItemsSource.GetPosition(item);
+                    header.Items.Remove(item);
                     viewItemsSource.Remove(item);
                     NotifyItemRemoved(GetViewPosition(position));
                 }
@@ -538,34 +583,75 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
             ReloadOnAllItemsSourceSets = false;
         }
 
-        private void AddHeader(ITaskHeader header)
+        private void GenerateInitialHeaders()
         {
-            var headers = GetHeaders();
-            headers.Add(header);
+            if (viewItemsSource == null)
+                viewItemsSource = new List<ITaskItem>();
 
-            if (headers.Count <= 1)
-                return;
-
-            var orderedHeaders = headers.OrderBy(h => h.Model);
-
-            int aboveHeaderPosition = orderedHeaders.GetPosition(header) - 1;
-            var aboveHeader = orderedHeaders.ElementAt(aboveHeaderPosition);
-            int newHeaderPosition = viewItemsSource.GetPosition(aboveHeader) + GetVisibleItemsInHeader(aboveHeader) + 1;
-            viewItemsSource.Insert(newHeaderPosition, header);
-            NotifyItemInserted(newHeaderPosition);
+            foreach (var initialHeader in AddInitialHeaders())
+            {
+                var header = GenerateHeader(initialHeader);
+                AddHeader(header);
+            }
         }
 
-        private bool TaskHeaderDisabled(ITaskHeader header, ITaskItem item)
+        private bool AddHeader(ITaskHeader header)
         {
-            if (header.Rules.HasFlag(TaskHeaderRule.DragDisabled))
-            {
-                var itemHeader = GetHeader(item);
-                int previousHeaderPosition = viewItemsSource.GetPosition(itemHeader);
-                bool positiveDirection = previousHeaderPosition < viewItemsSource.GetPosition(header);
+            if (viewItemsSource.Any(h => h.Header.Equals(header.Header)))
+                return false;
 
-                int newPosition = positiveDirection
-                    ? previousHeaderPosition + GetVisibleItemsInHeader(itemHeader)
-                    : previousHeaderPosition;
+            viewItemsSource.Add(header);
+            var headers = GetHeaders();
+
+            if (headers.Count <= 1)
+            {
+                int headerPosition = viewItemsSource.GetPosition(header);
+                NotifyItemInserted(headerPosition);
+                return true;
+            }
+
+            var orderedHeaders = headers.OrderBy(h => h.Header);
+
+            int aboveHeaderPosition = orderedHeaders.GetPosition(header) - 1;
+            int newHeaderPosition;
+            if (aboveHeaderPosition < 0)
+            {
+                newHeaderPosition = 0;
+            }
+            else
+            {
+                var aboveHeader = orderedHeaders.ElementAt(aboveHeaderPosition);
+                newHeaderPosition = viewItemsSource.GetPosition(aboveHeader) + CountVisibleItemsInHeader(aboveHeader) + 1;
+            }
+            viewItemsSource.Remove(header);
+            viewItemsSource.Insert(newHeaderPosition, header);
+            NotifyItemInserted(newHeaderPosition);
+            return true;
+        }
+
+        private bool TaskHeaderDragInDisabled(ITaskHeader newHeader, ITaskItem item)
+        {
+            if (newHeader?.Rules.HasFlag(TaskHeaderRule.DragInDisabled) == true)
+            {
+                var currentHeader = GetHeader(item);
+                int currentHeaderPosition = viewItemsSource.GetPosition(currentHeader);
+                bool positiveDirection = currentHeaderPosition < viewItemsSource.GetPosition(newHeader);
+
+                int newPosition;
+                int newPositionInHeader;
+                if (positiveDirection)
+                {
+                    newPosition = currentHeaderPosition + CountVisibleItemsInHeader(currentHeader);
+                    newPositionInHeader = newPosition - currentHeaderPosition - 1;
+                }
+                else
+                {
+                    newPosition = currentHeaderPosition;
+                    newPositionInHeader = newPosition - currentHeaderPosition;
+                }
+
+                currentHeader.Items.Remove(item);
+                currentHeader.Items.Insert(newPositionInHeader, item);
 
                 int position = viewItemsSource.GetPosition(item);
                 viewItemsSource.Remove(item);
@@ -576,33 +662,26 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
             return false;
         }
 
-        private void RemoveTemporaryTaskHeader(ITaskItem item)
+        private bool TaskHeaderDragOutDisabled(ITaskHeader header)
+        {
+            return header?.Rules.HasFlag(TaskHeaderRule.DragOutDisabled) == true;
+        }
+
+        private bool RemoveTemporaryTaskHeader(ITaskItem item)
         {
             var itemHeader = GetHeader(item);
-            if (itemHeader.Rules.HasFlag(TaskHeaderRule.Temporary))
+            if (itemHeader?.Rules.HasFlag(TaskHeaderRule.Temporary) == true)
             {
                 var items = GetItemsInHeader(itemHeader);
-                if (items?.Count() > 0)
-                    return;
+                if (items?.Count > 0)
+                    return false;
 
                 int position = viewItemsSource.GetPosition(itemHeader);
                 viewItemsSource.Remove(itemHeader);
                 NotifyItemRemoved(position);
+                return true;
             }
-        }
-
-        private void SequenceTaskItems(IList<ITaskItem> items)
-        {
-            if (items.All(i => !i.Sequence.HasValue))
-                return;
-
-            var lastSequencedItem = items.LastOrDefault(i => i.Sequence.HasValue);
-            int lastSequencedPosition = items.GetPosition(lastSequencedItem);
-
-            for (int i = 0; i <= lastSequencedPosition; i++)
-            {
-                items[i].Sequence = i;
-            }
+            return false;
         }
     }
 }
