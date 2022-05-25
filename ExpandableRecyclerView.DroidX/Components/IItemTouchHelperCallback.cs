@@ -1,9 +1,11 @@
 ﻿using AndroidX.RecyclerView.Widget;
+using MvvmCross.ExpandableRecyclerView.Core;
+using System;
 
 namespace MvvmCross.ExpandableRecyclerView.DroidX
 {
     /// <summary>
-    /// Interface exposing methods used in <see cref="MvxExpandableRecyclerView"/> to help with item dragging, swiping, etc.
+    /// Interface exposing methods used in <see cref="MvxExpandableRecyclerAdapter{THeader}"/> to help with item dragging, swiping, etc.
     /// </summary>
     public interface IItemTouchHelperCallback
     {
@@ -28,5 +30,12 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         /// <param name="recyclerView"><see cref="MvxExpandableRecyclerView"/>.</param>
         /// <param name="viewHolder">The view the action was executed on.</param>
         void OnClearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder);
+
+        /// <summary>
+        /// Get header.
+        /// </summary>
+        /// <param name="item">Item to get header information from.</param>
+        /// <returns>Header matching item's header.</returns>
+        ITaskHeader GetHeader(ITaskItem item);
     }
 }

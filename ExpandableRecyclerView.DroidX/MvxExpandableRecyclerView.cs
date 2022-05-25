@@ -13,24 +13,21 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
     /// </summary>
     public class MvxExpandableRecyclerView : MvxRecyclerView
     {
-        public MvxExpandableRecyclerView(Context context, IAttributeSet attrs) 
+        public MvxExpandableRecyclerView(Context context, IAttributeSet attrs)
             : base(context, attrs, 0, new MvxExpandableRecyclerAdapter<object>())
-        {
-        }
+        { }
 
-        public MvxExpandableRecyclerView(Context context, IAttributeSet attrs, int defStyle) 
+        public MvxExpandableRecyclerView(Context context, IAttributeSet attrs, int defStyle)
             : base(context, attrs, defStyle, new MvxExpandableRecyclerAdapter<object>())
-        {
-        }
+        { }
 
-        public MvxExpandableRecyclerView(Context context, IAttributeSet attrs, int defStyle, IMvxExpandableRecyclerAdapter adapter) 
+        public MvxExpandableRecyclerView(Context context, IAttributeSet attrs, int defStyle, IMvxExpandableRecyclerAdapter adapter)
             : base(context, attrs, defStyle, adapter)
-        {
-        }
+        { }
 
-        protected MvxExpandableRecyclerView(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
-        {
-        }
+        protected MvxExpandableRecyclerView(IntPtr javaReference, JniHandleOwnership transfer)
+            : base(javaReference, transfer)
+        { }
 
         /// <summary>
         /// Adapter.
@@ -62,15 +59,11 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
                 }
 
                 if (existing != null)
-                {
                     existing.ItemsSource = null;
-                }
             }
         }
 
-        /// <summary>
-        /// Get or set the <see cref="ICommand"/> to trigger when an item was swiped towards the start direction.
-        /// </summary>
+        /// <inheritdoc/>
         [MvxSetToNullAfterBinding]
         public ICommand ItemSwipeStart
         {
@@ -78,15 +71,11 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
             set
             {
                 if (Adapter != null)
-                {
                     Adapter.ItemSwipeStart = value;
-                }
             }
         }
 
-        /// <summary>
-        /// Get or set the <see cref="ICommand"/> to trigger when an item was swiped towards the end direction.
-        /// </summary>
+        /// <inheritdoc/>
         [MvxSetToNullAfterBinding]
         public ICommand ItemSwipeEnd
         {
@@ -94,9 +83,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
             set
             {
                 if (Adapter != null)
-                {
                     Adapter.ItemSwipeEnd = value;
-                }
             }
         }
     }

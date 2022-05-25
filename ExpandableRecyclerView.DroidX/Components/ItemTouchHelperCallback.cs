@@ -1,5 +1,6 @@
 ﻿using AndroidX.RecyclerView.Widget;
 using MvvmCross.DroidX.RecyclerView;
+using MvvmCross.ExpandableRecyclerView.Core;
 
 namespace MvvmCross.ExpandableRecyclerView.DroidX
 {
@@ -22,15 +23,27 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         /// <inheritdoc/>
         public override int GetMovementFlags(RecyclerView p0, RecyclerView.ViewHolder p1)
         {
-            if (p1 is IMvxRecyclerViewHolder holder && holder.DataContext is ITaskHeader)
-            {
-                return 0;
-            }
+            if (!(p1 is IMvxRecyclerViewHolder))
+                return ItemTouchHelper.ActionStateIdle;
 
-            int dragFlags = ItemTouchHelper.Up | ItemTouchHelper.Down;
-            int swipeFlags = ItemTouchHelper.Start | ItemTouchHelper.End;
+            var holder = (IMvxRecyclerViewHolder)p1;
+            if (holder.DataContext is ITaskHeader)
+                return ItemTouchHelper.ActionStateIdle;
+
+            var item = (ITaskItem)holder.DataContext;
+            if (item == null)
+                return ItemTouchHelper.ActionStateIdle;
+
+            var header = adapter.GetHeader(item);
+            if (header == null)
+                return ItemTouchHelper.ActionStateIdle;
+
+            int dragFlags = MakeDragFlags(header.Rules);
+            int swipeFlags = MakeSwipeFlags(header.Rules);
+
             return MakeMovementFlags(dragFlags, swipeFlags);
         }
+
 
         /// <inheritdoc/>
         public override bool OnMove(RecyclerView p0, RecyclerView.ViewHolder p1, RecyclerView.ViewHolder p2)
@@ -50,6 +63,26 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         {
             base.ClearView(recyclerView, viewHolder);
             adapter.OnClearView(recyclerView, viewHolder);
+        }
+
+        private int MakeDragFlags(TaskHeaderRule rules)
+        {
+            if (rules.HasFlag(TaskHeaderRule.DragOutDisabled))
+                return ItemTouchHelper.ActionStateIdle;
+
+            return ItemTouchHelper.Up | ItemTouchHelper.Down;
+        }
+
+        private int MakeSwipeFlags(TaskHeaderRule rules)
+        {
+            if (rules.HasFlag(TaskHeaderRule.SwipeStartDisabled) && rules.HasFlag(TaskHeaderRule.SwipeEndDisabled))
+                return ItemTouchHelper.ActionStateIdle;
+            else if (rules.HasFlag(TaskHeaderRule.SwipeStartDisabled))
+                return ItemTouchHelper.End;
+            else if (rules.HasFlag(TaskHeaderRule.SwipeEndDisabled))
+                return ItemTouchHelper.Start;
+            else
+                return ItemTouchHelper.Start | ItemTouchHelper.End;
         }
     }
 }

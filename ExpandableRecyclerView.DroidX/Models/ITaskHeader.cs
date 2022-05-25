@@ -1,10 +1,10 @@
 ﻿using MvvmCross.ExpandableRecyclerView.Core;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace MvvmCross.ExpandableRecyclerView.DroidX
 {
     /// <summary>
-    /// Interface exposing header properties used for MvxExpandableRecyclerView.
+    /// Interface exposing header properties used in <see cref="MvxExpandableRecyclerAdapter{THeader}"/>.
     /// </summary>
     public interface ITaskHeader : ITaskItem
     {
@@ -16,12 +16,17 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         /// <summary>
         /// Whether header is collapsed or expanded.
         /// </summary>
-        bool IsCollapsed { get; }
+        bool IsCollapsed { get; set; }
 
         /// <summary>
-        /// This will contain items under header, if header is collapsed.
+        /// The items under this header.
         /// </summary>
-        IList<ITaskItem> CollapsedItems { get; set; }
+        ObservableCollection<ITaskItem> Items { get; set; }
+
+        /// <summary>
+        /// The number of items under this header.
+        /// </summary>
+        int Count { get; }
 
         /// <summary>
         /// Custom rules for header.
