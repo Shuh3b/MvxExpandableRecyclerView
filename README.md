@@ -1,6 +1,6 @@
 # Android MvxExpandableRecyclerView
 
-This is an unofficial package that contains an expandable AndroidX RecyclerView supported for MvvmCross. This view allows us to bind a collection of items (objects, ViewModels, etc) to the `ItemsSource` property. It works similarly to a RecyclerView. However, this comes with out-of-the-box functionality such as grouping items with collapsible/expandable headers. Additional functionality can be implemented such as dragging items up and down and swiping them by attaching the provided `ItemTouchHelperCallback` to the RecyclerView. 
+This is an unofficial package that contains an expandable AndroidX RecyclerView supported for MvvmCross. This view allows us to bind a collection of items (objects, ViewModels, etc) to the `ItemsSource` property. It works similarly to a RecyclerView. However, this comes with out-of-the-box functionality such as grouping items with collapsible/expandable headers. Additional functionality can be implemented such as dragging items up and down and swiping them by binding a `boolean` property to `EnableDrag` and `EnableSwipe` respectively.
 
 All original functionality of `MvxRecyclerView` is also available and it is highly encouraged that you read the [documentation](https://www.mvvmcross.com/documentation/platform/android/android-recyclerview) before proceeding.
 
@@ -148,8 +148,8 @@ public class AppointmentTemplateSelector : MvxTemplateSelector<ITaskItem>
 	android:layout_height="match_parent"
 	local:MvxTemplateSelector="AppointmentPlanner.Droid.Components.AppointmentTemplateSelector, AppointmentPlanner.Droid"
 	local:MvxBind="ItemsSource People;
-			ItemSwipeStart RemovePersonCommand;
-			ItemSwipeEnd UnplanPersonCommand;"/>
+			ItemSwipeRight UnplanPersonCommand;
+			ItemSwipeLeft RemovePersonCommand;"/>
 ```
 
 __Important:__ MvxExpandableRecyclerView will require you to bind an `ObservableCollection<ITaskItem>` to `ItemsSource` and will need to have your custom `MvxTemplateSelector` for it to display your headers and items correctly.
@@ -158,16 +158,39 @@ For more information, MvvmCross provides documentation for [MvxTemplateSelector]
 
 ## Dragging and Swiping Items
 
-To enable dragging and swiping features, we need to use `ItemTouchHelperCallback` and attach it to our `MvxExpandableRecyclerView`.
+To enable dragging and swiping features, we need to modify our `xml` and bind `EnableDrag` and `EnableSwipe` to `true`.
 
-```csharp
-MvxExpandableRecyclerView expandableRecyclerView = _view.FindViewById<MvxExpandableRecyclerView>(Resource.Id.appointment_recyclerview);
-// Attach our helper class to implement drag and swipe functionality.
-ItemTouchHelperCallback itemMoveCallback = new ItemTouchHelperCallback(expandableRecyclerView.Adapter);
-ItemTouchHelper itemTouchHelper = new ItemTouchHelper(itemMoveCallback);
-itemTouchHelper.AttachToRecyclerView(expandableRecyclerView);
+```xml
+<MvvmCross.ExpandableRecyclerView.DroidX.MvxExpandableRecyclerView
+	android:id="@+id/appointment_recyclerview"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	local:MvxTemplateSelector="AppointmentPlanner.Droid.Components.AppointmentTemplateSelector, AppointmentPlanner.Droid"
+	local:MvxBind="ItemsSource People;
+			ItemSwipeRight UnplanPersonCommand;
+			ItemSwipeLeft RemovePersonCommand;
+			EnableDrag true;
+			EnableSwipe true;"/>
 ```
 
 Swipe actions are bindable and can have 2 different actions depending on the direction of the swipe. `ItemSwipeStart` and `ItemSwipeEnd` are bindable and are done in the same way as `MvxRecyclerView`'s [`ItemClickCommand` and `ItemLongClickCommand`](https://www.mvvmcross.com/documentation/platform/android/android-recyclerview#itemclick-and-itemlongclick-commands).
+
+## Hide Sticky Header
+
+A sticky header is always shown by default, however we can hide the sticky header by modifying our `xml` and bind `ShowStickyHeader` to `false`.
+
+```xml
+<MvvmCross.ExpandableRecyclerView.DroidX.MvxExpandableRecyclerView
+	android:id="@+id/appointment_recyclerview"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	local:MvxTemplateSelector="AppointmentPlanner.Droid.Components.AppointmentTemplateSelector, AppointmentPlanner.Droid"
+	local:MvxBind="ItemsSource People;
+			ItemSwipeRight UnplanPersonCommand;
+			ItemSwipeLeft RemovePersonCommand;
+			EnableDrag true;
+			EnableSwipe true;
+			ShowStickyHeader false;"/>
+```
 
 [^1]: If you don’t provide an item template selector `MvxExpandableRecyclerView` will fall back to using a `SimpleListItem1`, which is a built in Android Resource. It will also just call `ToString()` on your item that you are supplying. A custom view should be used for headers, if items aren't grouped using a `string`.
