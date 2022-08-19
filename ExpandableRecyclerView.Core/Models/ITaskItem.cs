@@ -8,19 +8,14 @@ namespace MvvmCross.ExpandableRecyclerView.Core
     public interface ITaskItem : INotifyPropertyChanged
     {
         /// <summary>
-        /// The header to group items by.
-        /// </summary>
-        object Header { get; set; }
-
-        /// <summary>
         /// The underlying data that will be displayed.
         /// </summary>
         object Model { get; }
 
         /// <summary>
-        /// The position of the item within a header.
+        /// The property to group <see cref="Model"/> by.
         /// </summary>
-        int? Sequence { get; set; }
+        object Header { get; set; }
 
         /// <summary>
         /// Used to identify if item has been selected.
@@ -31,5 +26,28 @@ namespace MvvmCross.ExpandableRecyclerView.Core
         /// Used to identify if item has been selected as part of a multi-select process.
         /// </summary>
         bool IsHighlighted { get; set; }
+
+        /// <summary>
+        /// The position of the item within the header.
+        /// </summary>
+        int? Sequence { get; set; }
+    }
+
+    /// <summary>
+    /// Interface exposing properties used for MvxExpandableRecyclerView.
+    /// </summary>
+    /// <typeparam name="TModel">Type of model.</typeparam>
+    /// <typeparam name="THeader">Type of header.</typeparam>
+    public interface ITaskItem<out TModel, THeader> : ITaskItem
+    {
+        /// <summary>
+        /// The underlying data that will be displayed.
+        /// </summary>
+        new TModel Model { get; }
+
+        /// <summary>
+        /// The property to group <see cref="Model"/> by.
+        /// </summary>
+        new THeader Header { get; set; }
     }
 }

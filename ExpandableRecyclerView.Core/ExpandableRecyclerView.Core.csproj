@@ -5,7 +5,7 @@
 		<AssemblyName>MvvmCross.ExpandableRecyclerView.Core</AssemblyName>
 		<PackageId>MvxExpandableRecyclerView.Core</PackageId>
 		<RootNamespace>MvvmCross.ExpandableRecyclerView.Core</RootNamespace>
-		<Version>2.0.0</Version>
+		<Version>3.0.0</Version>
 		<Authors>Mohammed Ali Ahmed</Authors>
 		<Company>Mohammed Ali Ahmed</Company>
 		<Product>MvxExpandableRecyclerView</Product>
@@ -17,9 +17,10 @@ This is an unofficial package that contains an expandable AndroidX RecyclerView 
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<RepositoryUrl>https://github.com/Shuh3b/MvxExpandableRecyclerViewSample</RepositoryUrl>
+		<RepositoryUrl>https://github.com/Shuh3b/MvxExpandableRecyclerView</RepositoryUrl>
 		<RepositoryType>GitHub</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
 </Project>

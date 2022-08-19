@@ -1,21 +1,28 @@
 ﻿using MvvmCross.DroidX.RecyclerView;
+using MvvmCross.ExpandableRecyclerView.Core;
+using MvvmCross.ExpandableRecyclerView.DroidX.Components;
 using System.Windows.Input;
 
 namespace MvvmCross.ExpandableRecyclerView.DroidX
 {
     /// <summary>
-    /// Interface exposing adapter properties used for <see cref="MvxExpandableRecyclerView"/>.
+    /// Interface exposing adapter properties used for <see cref="MvxExpandableRecyclerAdapter{THeader}"/>.
     /// </summary>
-    public interface IMvxExpandableRecyclerAdapter : IMvxRecyclerAdapter, IMvxRecyclerAdapterBindableHolder, IItemTouchHelperCallback
+    public interface IMvxExpandableRecyclerAdapter : IMvxRecyclerAdapter, IMvxRecyclerAdapterBindableHolder, IItemTouchHelperCallback, IStickyHeaderHelper
     {
         /// <summary>
-        /// Get or set the <see cref="ICommand"/> to trigger when an item was swiped towards the start direction.
+        /// Get or set the <see cref="ICommand"/> to trigger when an item was swiped towards the right.
         /// </summary>
-        ICommand ItemSwipeStart { get; set; }
+        ICommand ItemSwipeRight { get; set; }
 
         /// <summary>
-        /// Get or set the <see cref="ICommand"/> to trigger when an item was swiped towards the end direction.
+        /// Get or set the <see cref="ICommand"/> to trigger when an item was swiped towards the left.
         /// </summary>
-        ICommand ItemSwipeEnd { get; set; }
+        ICommand ItemSwipeLeft { get; set; }
+
+        /// <summary>
+        /// Item that was last interacted with.
+        /// </summary>
+        ITaskItem SelectedItem { get; }
     }
 }

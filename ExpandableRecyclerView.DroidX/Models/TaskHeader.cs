@@ -11,15 +11,16 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
     /// Abstract class used for headers in <see cref="MvxExpandableRecyclerAdapter{THeader}"/>.
     /// </summary>
     /// <typeparam name="TModel">Type of model for header.</typeparam>
-    /// <typeparam name="THeader">Type of header to use for </typeparam>
+    /// <typeparam name="THeader">Type of header to use.</typeparam>
     public abstract class TaskHeader<TModel, THeader> : TaskItem<TModel, THeader>, ITaskHeader
     {
         private bool isCollapsed;
         private ObservableCollection<ITaskItem> items;
+        private bool isSticky;
 
         /// <summary>
         /// Constructor.
-        /// You will need to override <see cref="Header"/> and assign <see cref="Model"/> or a property from it.
+        /// <para>You will need to override Header and assign a property from Model or the Model itself.</para>
         /// </summary>
         /// <param name="name">Header name.</param>
         /// <param name="model">Header model.</param>
@@ -27,7 +28,8 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
             : base(model)
         {
             Name = name;
-            Init();
+            Items = new ObservableCollection<ITaskItem>();
+            Items.CollectionChanged += Items_CollectionChanged;
         }
 
         /// <inheritdoc/>
@@ -43,12 +45,17 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
             set
             {
                 if (SetProperty(ref items, value))
+                {
                     OnPropertyChanged(nameof(Count));
+                }
             }
         }
 
         /// <inheritdoc/>
         public int Count => Items.Count;
+
+        /// <inheritdoc/>
+        public bool IsSticky { get => isSticky; set => SetProperty(ref isSticky, value); }
 
         /// <inheritdoc/>
         public TaskHeaderRule Rules { get; set; }
@@ -60,27 +67,29 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
             set => throw new InvalidOperationException("Header sequence should never be changed.");
         }
 
-        private void Init()
-        {
-            Items = new ObservableCollection<ITaskItem>();
-            Items.CollectionChanged += Items_CollectionChanged;
-        }
-
-        private void Items_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        /// <summary>
+        /// <para>Event handler that's called when <see cref="Items"/> is modified.</para>
+        /// <para>Ensure that the base implementation is called when overriding this method.</para>
+        /// <para>It's discouraged to execute any expensive logic here when overriding.</para>
+        /// </summary>
+        /// <param name="sender">Sender.</param>
+        /// <param name="e">EventArgs.</param>
+        protected virtual void Items_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             OnPropertyChanged(nameof(Count));
 
-            if (Rules.HasFlag(TaskHeaderRule.SequenceDisabled))
+            if (Rules.HasFlag(TaskHeaderRule.SequenceDisabled) || items.All(i => !i.Sequence.HasValue))
+            {
                 return;
-
-            if (items.All(i => !i.Sequence.HasValue))
-                return;
+            }
 
             var lastSequencedItem = items.LastOrDefault(i => i.Sequence.HasValue);
             int lastSequencedPosition = items.GetPosition(lastSequencedItem);
 
             if (lastSequencedPosition < 0)
+            {
                 return;
+            }
 
             for (int i = 0; i <= lastSequencedPosition; i++)
             {
