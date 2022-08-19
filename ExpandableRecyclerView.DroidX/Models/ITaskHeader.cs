@@ -29,6 +29,11 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         int Count { get; }
 
         /// <summary>
+        /// Whether header is a sticky header or not.
+        /// </summary>
+        bool IsSticky { get; set; }
+
+        /// <summary>
         /// Custom rules for header.
         /// </summary>
         TaskHeaderRule Rules { get; set; }

@@ -11,7 +11,7 @@ namespace MvvmCross.ExpandableRecyclerView.Core
     /// </summary>
     /// <typeparam name="TModel">Type of model.</typeparam>
     /// <typeparam name="THeader">Type of header.</typeparam>
-    public abstract class TaskItem<TModel, THeader> : ITaskItem
+    public abstract class TaskItem<TModel, THeader> : ITaskItem<TModel, THeader>
     {
         private int? sequence;
         private bool isSelected;
@@ -26,25 +26,23 @@ namespace MvvmCross.ExpandableRecyclerView.Core
             Model = model;
         }
 
-        /// <summary>
-        /// The header to group items by.
-        /// You will need to override <see cref="Header"/> and assign <see cref="Model"/> or a property from it.
-        /// </summary>
-        public abstract THeader Header { get; set; }
-
-        /// <summary>
-        /// The underlying data that will be displayed.
-        /// </summary>
+        /// <inheritdoc/>
         public TModel Model { get; }
 
+        /// <summary>
         /// <inheritdoc/>
-        public int? Sequence { get => sequence; set => SetProperty(ref sequence, value); }
+        /// <para>You will need to override <see cref="Header"/> and assign a property from <see cref="Model"/> or the <see cref="Model"/> itself.</para>
+        /// </summary>
+        public abstract THeader Header { get; set; }
 
         /// <inheritdoc/>
         public bool IsSelected { get => isSelected; set => SetProperty(ref isSelected, value); }
 
         /// <inheritdoc/>
         public bool IsHighlighted { get => isHighlighted; set => SetProperty(ref isHighlighted, value); }
+
+        /// <inheritdoc/>
+        public int? Sequence { get => sequence; set => SetProperty(ref sequence, value); }
 
         /// <inheritdoc/>
         public event PropertyChangedEventHandler PropertyChanged;

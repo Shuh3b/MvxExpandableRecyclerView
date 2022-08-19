@@ -3,7 +3,7 @@
 namespace MvvmCross.ExpandableRecyclerView.DroidX
 {
     /// <summary>
-    /// Custom rules for task headers.
+    /// Custom rules for headers.
     /// </summary>
     [Flags]
     public enum TaskHeaderRule
@@ -24,14 +24,14 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         DragOutDisabled = 2,
 
         /// <summary>
-        /// Prevent items being swiped towards start direction.
+        /// Prevent items being swiped towards the right.
         /// </summary>
-        SwipeStartDisabled = 4,
+        SwipeRightDisabled = 4,
 
         /// <summary>
-        /// Prevent items being swiped towards end direction.
+        /// Prevent items being swiped towards the left.
         /// </summary>
-        SwipeEndDisabled = 8,
+        SwipeLeftDisabled = 8,
 
         /// <summary>
         /// Items under header will not be sequenced.

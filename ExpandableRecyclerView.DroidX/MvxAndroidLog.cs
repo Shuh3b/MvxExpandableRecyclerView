@@ -16,7 +16,9 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         public static ILogger<T> GetLog<T>()
         {
             if (Mvx.IoCProvider.TryResolve<ILoggerFactory>(out var loggerFactory))
+            {
                 return loggerFactory.CreateLogger<T>();
+            }
 
             return null;
         }
@@ -24,7 +26,9 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         public static ILogger GetLog(string categoryName)
         {
             if (Mvx.IoCProvider.TryResolve<ILoggerFactory>(out var loggerFactory))
+            {
                 return loggerFactory.CreateLogger(categoryName);
+            }
 
             return null;
         }

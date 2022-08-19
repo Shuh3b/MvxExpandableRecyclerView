@@ -3,9 +3,9 @@
 namespace MvvmCross.ExpandableRecyclerView.DroidX
 {
     /// <summary>
-    /// Class used to show simple headers in <see cref="MvxExpandableRecyclerView"/>.
+    /// Class used to show simple headers in <see cref="MvxExpandableRecyclerBaseView"/>.
     /// </summary>
-    /// <typeparam name="TModel">Type of model for header.</typeparam>
+    /// <typeparam name="TModel">Type of model used for header.</typeparam>
     public class SimpleTaskHeader<TModel> : TaskHeader<TModel, TModel>
     {
         /// <summary>
