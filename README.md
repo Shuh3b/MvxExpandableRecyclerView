@@ -152,7 +152,7 @@ public class AppointmentTemplateSelector : MvxTemplateSelector<ITaskItem>
 			ItemSwipeLeft RemovePersonCommand;"/>
 ```
 
-__Important:__ MvxExpandableRecyclerView will require you to bind an `ObservableCollection<ITaskItem>` to `ItemsSource` and will need to have your custom `MvxTemplateSelector` for it to display your headers and items correctly.
+__Important:__ MvxExpandableRecyclerView will require you to bind an `MvxObservableCollection<ITaskItem>` to `ItemsSource` and will need to have your custom `MvxTemplateSelector` for it to display your headers and items correctly.
 
 For more information, MvvmCross provides documentation for [MvxTemplateSelector](https://www.mvvmcross.com/documentation/platform/android/android-recyclerview#using-an-item-template-selector). If you want to display complex objects for both/either headers and/or items, it is **strongly recommended to use `MvxTemplateSelector`** to show different types of views.
 
@@ -173,7 +173,7 @@ To enable dragging and swiping features, we need to modify our `xml` and bind `E
 			EnableSwipe true;"/>
 ```
 
-Swipe actions are bindable and can have 2 different actions depending on the direction of the swipe. `ItemSwipeStart` and `ItemSwipeEnd` are bindable and are done in the same way as `MvxRecyclerView`'s [`ItemClickCommand` and `ItemLongClickCommand`](https://www.mvvmcross.com/documentation/platform/android/android-recyclerview#itemclick-and-itemlongclick-commands).
+Swipe actions are bindable and can have 2 different actions depending on the direction of the swipe. `ItemSwipeLeft` and `ItemSwipeRight` are bindable and are done in the same way as `MvxRecyclerView`'s [`ItemClickCommand` and `ItemLongClickCommand`](https://www.mvvmcross.com/documentation/platform/android/android-recyclerview#itemclick-and-itemlongclick-commands).
 
 ## Hide Sticky Header
 
