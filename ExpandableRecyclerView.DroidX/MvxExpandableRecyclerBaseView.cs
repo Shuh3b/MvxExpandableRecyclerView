@@ -58,7 +58,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
             LayoutManager currentLayoutManager = GetLayoutManager();
             if (currentLayoutManager == null)
             {
-                stickyHeaderLayoutManager = new StickyHeaderLayoutManager(context, adapter);
+                stickyHeaderLayoutManager = new StickyHeaderLayoutManager(context, attrs, adapter);
                 SetLayoutManager(stickyHeaderLayoutManager);
             }
 

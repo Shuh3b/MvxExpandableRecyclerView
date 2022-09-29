@@ -1,5 +1,5 @@
 ﻿using MvvmCross.ExpandableRecyclerView.Core;
-using System.Collections.ObjectModel;
+using MvvmCross.ViewModels;
 
 namespace MvvmCross.ExpandableRecyclerView.DroidX
 {
@@ -21,7 +21,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         /// <summary>
         /// The items under this header.
         /// </summary>
-        ObservableCollection<ITaskItem> Items { get; set; }
+        MvxObservableCollection<ITaskItem> Items { get; set; }
 
         /// <summary>
         /// The number of items under this header.

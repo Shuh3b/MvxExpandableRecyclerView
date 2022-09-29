@@ -61,9 +61,6 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         public bool IsDragging => isDragging;
 
         /// <inheritdoc/>
-        public bool IsInteractive { get; set; }
-
-        /// <inheritdoc/>
         public bool EnableDrag { get; set; }
 
         /// <inheritdoc/>
@@ -339,7 +336,7 @@ All changes must be synchronized on the main thread.");
         {
             if (viewHolder is IMvxRecyclerViewHolder holder)
             {
-                if (direction == ItemTouchHelper.Start)
+                if (direction == ItemTouchHelper.Left)
                 {
                     if (ItemSwipeLeft == null)
                     {
@@ -348,7 +345,7 @@ All changes must be synchronized on the main thread.");
 
                     ExecuteCommandOnItem(ItemSwipeLeft, holder.DataContext);
                 }
-                else if (direction == ItemTouchHelper.End)
+                else if (direction == ItemTouchHelper.Right)
                 {
                     if (ItemSwipeRight == null)
                     {
@@ -490,7 +487,7 @@ All changes must be synchronized on the main thread.");
             {
                 var itemsToAdd = header.Items;
                 int pos = position;
-                foreach (var item in itemsToAdd)
+                foreach (ITaskItem item in itemsToAdd)
                 {
                     viewItemsSource.Insert(pos++, item);
                 }
@@ -500,7 +497,7 @@ All changes must be synchronized on the main thread.");
             else
             {
                 var itemsToRemove = header.Items;
-                foreach (var item in itemsToRemove)
+                foreach (ITaskItem item in itemsToRemove)
                 {
                     viewItemsSource.Remove(item);
                 }
@@ -528,6 +525,8 @@ All changes must be synchronized on the main thread.");
             var groupedItems = items.Where(i => !(i is ITaskHeader)).OrderBy(i => i.Header).GroupBy(i => i.Header);
             List<ITaskItem> taskItems = new List<ITaskItem>();
 
+            Dictionary<ITaskHeader, List<ITaskItem>> sortedHeaderAndItems = new Dictionary<ITaskHeader, List<ITaskItem>>();
+
             foreach (var group in groupedItems)
             {
                 ITaskHeader generatedHeader = GenerateHeader((THeader)group.Key);
@@ -540,38 +539,23 @@ All changes must be synchronized on the main thread.");
                     }
                 }
 
-                if (taskItems.FirstOrDefault(item => item is ITaskHeader header && header.Header.Equals(generatedHeader.Header)) is ITaskHeader existingHeader)
+                if (sortedHeaderAndItems.Keys.Any(h => h.Header.Equals(generatedHeader.Header)))
                 {
-                    List<ITaskItem> headerItems = existingHeader.Items.ToList();
-                    existingHeader.Items.Clear();
-                    taskItems.RemoveAll(item => headerItems.Contains(item));
-                    headerItems.AddRange(group);
-
-                    int position = taskItems.GetPosition(existingHeader) + 1;
-
-                    foreach (ITaskItem item in headerItems.OrderByDescending(i => i.Sequence.HasValue).ThenBy(i => i.Sequence))
-                    {
-                        existingHeader.Items.Add(item);
-                    }
-
-                    if (!existingHeader.IsCollapsed)
-                    {
-                        taskItems.InsertRange(position, existingHeader.Items);
-                    }
+                    sortedHeaderAndItems.First(h => h.Key.Header.Equals(generatedHeader.Header)).Value.AddRange(group);
                 }
                 else
                 {
-                    foreach (ITaskItem item in group.OrderByDescending(i => i.Sequence.HasValue).ThenBy(i => i.Sequence))
-                    {
-                        generatedHeader.Items.Add(item);
-                    }
+                    sortedHeaderAndItems[generatedHeader] = new List<ITaskItem>(group);
+                }
+            }
 
-                    taskItems.Add(generatedHeader);
-
-                    if (!generatedHeader.IsCollapsed)
-                    {
-                        taskItems.AddRange(generatedHeader.Items);
-                    }
+            foreach (var headerItems in sortedHeaderAndItems)
+            {
+                headerItems.Key.Items.ReplaceWith(headerItems.Value.OrderByDescending(i => i.Sequence.HasValue).ThenBy(i => i.Sequence));
+                taskItems.Add(headerItems.Key);
+                if (!headerItems.Key.IsCollapsed)
+                {
+                    taskItems.AddRange(headerItems.Key.Items);
                 }
             }
 

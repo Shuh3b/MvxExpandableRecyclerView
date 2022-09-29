@@ -5,7 +5,7 @@
 		<AssemblyName>MvvmCross.ExpandableRecyclerView.DroidX</AssemblyName>
 		<PackageId>MvxExpandableRecyclerView.DroidX</PackageId>
 		<RootNamespace>MvvmCross.ExpandableRecyclerView.DroidX</RootNamespace>
-		<Version>3.0.0</Version>
+		<Version>3.0.1</Version>
 		<Authors>Mohammed Ali Ahmed</Authors>
 		<Company>Mohammed Ali Ahmed</Company>
 		<Product>MvxExpandableRecyclerView</Product>

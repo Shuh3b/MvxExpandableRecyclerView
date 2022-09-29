@@ -1,12 +1,14 @@
 ﻿using Android.Content;
 using Android.OS;
 using Android.Runtime;
+using Android.Util;
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Java.Lang;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 {
@@ -24,12 +26,13 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// Constructor.
         /// </summary>
         /// <param name="context">Context.</param>
+        /// <param name="attrs">Attrs.</param>
         /// <param name="adapter">Adapter.</param>
-        public StickyHeaderLayoutManager(Context context, IStickyHeaderHelper adapter)
+        public StickyHeaderLayoutManager(Context context, IAttributeSet attrs, IStickyHeaderHelper adapter)
             : base(context, OrientationHelper.Vertical, false)
         {
             this.adapter = adapter;
-            stickyHeaderView = new StickyHeaderView(context, null);
+            stickyHeaderView = new StickyHeaderView(context, attrs);
         }
 
         /// <inheritdoc/>
@@ -74,15 +77,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             ValidateParentView(view);
             ViewGroup parent = (ViewGroup)view.Parent;
             parent.AddView(stickyHeaderView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent));
-            if (adapter.ItemCount > 0)
-            {
-                int headerPosition = adapter.GetHeaderPosition(stickyHeaderPosition);
-                int headerViewType = adapter.GetItemViewType(headerPosition);
-                var dataContext = adapter.GetHeaderAt(headerPosition);
-                stickyHeaderView.DataContext = dataContext;
-                dataContext.IsSticky = true;
-                stickyHeaderView.TemplateId = headerViewType;
-            }
+            InitStickyHeader();
 
             stickyHeaderView.Click -= OnHeaderViewClick;
             stickyHeaderView.Click += OnHeaderViewClick;
@@ -120,6 +115,11 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// <inheritdoc/>
         public override int ScrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state)
         {
+            if (stickyHeaderView.TemplateId == 0)
+            {
+                InitStickyHeader();
+            }
+
             int scroll = base.ScrollVerticallyBy(dy, recycler, state);
             if (showStickyHeader)
             {
@@ -147,14 +147,14 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// <inheritdoc/>
         public override void OnRestoreInstanceState(IParcelable state)
         {
-            var parcel = state as MvxExpandableRecyclerParcel;
+            MvxExpandableRecyclerParcel parcel = state as MvxExpandableRecyclerParcel;
             stickyHeaderPosition = parcel.StickyHeaderPosition;
             ShowStickyHeader = parcel.ShowStickyHeader;
             if (adapter?.ItemCount > 0)
             {
-                foreach (var header in parcel.Headers)
+                foreach (ITaskHeader header in parcel.Headers)
                 {
-                    var realHeader = adapter.GetHeader(header);
+                    ITaskHeader realHeader = adapter.GetHeader(header);
                     if (realHeader != null && realHeader.IsCollapsed != header.IsCollapsed)
                     {
                         adapter.OnHeaderClick(realHeader);
@@ -174,6 +174,19 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             }
         }
 
+        private void InitStickyHeader()
+        {
+            if (adapter.ItemCount > 0)
+            {
+                int headerPosition = adapter.GetHeaderPosition(stickyHeaderPosition);
+                int headerViewType = adapter.GetItemViewType(headerPosition);
+                ITaskHeader dataContext = adapter.GetHeaderAt(headerPosition);
+                stickyHeaderView.DataContext = dataContext;
+                dataContext.IsSticky = true;
+                stickyHeaderView.TemplateId = headerViewType;
+            }
+        }
+
         private void OnHeaderViewClick(object sender, EventArgs e)
         {
             if (adapter.ItemCount <= 0)
@@ -188,7 +201,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             }
 
             int headerPosition = adapter.GetHeaderPosition(position);
-            var header = adapter.GetHeaderAt(headerPosition);
+            ITaskHeader header = adapter.GetHeaderAt(headerPosition);
             adapter.OnHeaderClick(header);
             ScrollToPosition(headerPosition);
         }
@@ -247,21 +260,34 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 
             int contactPoint = stickyHeaderView.Bottom;
             View childInContact = null;
+            List<View> pendingChildren = new List<View>();
+            bool isHeader = false;
 
-            for (int i = 0; i < ChildCount; i++)
+            for (int childPos = 0; childPos < ChildCount; childPos++)
             {
-                var child = GetChildAt(i);
+                View child = GetChildAt(childPos);
                 if (child.Bottom > contactPoint && child.Top <= contactPoint)
                 {
                     childInContact = child;
                     break;
                 }
+
+                if (child.Top > 0 && child.Bottom <= contactPoint && (adapter.IsHeader(GetPosition(child)) || isHeader))
+                {
+                    isHeader = true;
+                    pendingChildren.Add(child);
+                }
             }
 
-            int position = GetPosition(childInContact);
-            if (position != RecyclerView.NoPosition && position <= ItemCount && adapter.IsHeader(position))
+            int adapterPosition = GetPosition(childInContact);
+            if (adapterPosition != RecyclerView.NoPosition && adapterPosition <= ItemCount && (adapter.IsHeader(adapterPosition) || pendingChildren.Any(i => adapter.IsHeader(GetPosition(i)))))
             {
-                stickyHeaderView.TranslationY = childInContact.Top - stickyHeaderView.Height;
+                int height = 0;
+                foreach (View child in pendingChildren)
+                {
+                    height += child.Height;
+                }
+                stickyHeaderView.TranslationY = childInContact.Top - stickyHeaderView.Height - height;
             }
             else
             {
