@@ -43,19 +43,19 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
                 return ItemTouchHelper.ActionStateIdle;
             }
 
-            var holder = (IMvxRecyclerViewHolder)p1;
+            IMvxRecyclerViewHolder holder = (IMvxRecyclerViewHolder)p1;
             if (holder.DataContext is ITaskHeader)
             {
                 return ItemTouchHelper.ActionStateIdle;
             }
 
-            var item = (ITaskItem)holder.DataContext;
+            ITaskItem item = (ITaskItem)holder.DataContext;
             if (item == null)
             {
                 return ItemTouchHelper.ActionStateIdle;
             }
 
-            var header = adapter.GetHeader(item);
+            ITaskHeader header = adapter.GetHeader(item);
             if (header == null)
             {
                 return ItemTouchHelper.ActionStateIdle;
@@ -111,15 +111,15 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             }
             else if (rules.HasFlag(TaskHeaderRule.SwipeLeftDisabled))
             {
-                return ItemTouchHelper.End;
+                return ItemTouchHelper.Right;
             }
             else if (rules.HasFlag(TaskHeaderRule.SwipeRightDisabled))
             {
-                return ItemTouchHelper.Start;
+                return ItemTouchHelper.Left;
             }
             else
             {
-                return ItemTouchHelper.Start | ItemTouchHelper.End;
+                return ItemTouchHelper.Left | ItemTouchHelper.Right;
             }
         }
     }

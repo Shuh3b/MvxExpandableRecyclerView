@@ -1,7 +1,7 @@
 ﻿using MvvmCross.Binding.Extensions;
 using MvvmCross.ExpandableRecyclerView.Core;
+using MvvmCross.ViewModels;
 using System;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 
@@ -15,7 +15,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
     public abstract class TaskHeader<TModel, THeader> : TaskItem<TModel, THeader>, ITaskHeader
     {
         private bool isCollapsed;
-        private ObservableCollection<ITaskItem> items;
+        private MvxObservableCollection<ITaskItem> items;
         private bool isSticky;
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
             : base(model)
         {
             Name = name;
-            Items = new ObservableCollection<ITaskItem>();
+            Items = new MvxObservableCollection<ITaskItem>();
             Items.CollectionChanged += Items_CollectionChanged;
         }
 
@@ -39,7 +39,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         public bool IsCollapsed { get => isCollapsed; set => SetProperty(ref isCollapsed, value); }
 
         /// <inheritdoc/>
-        public ObservableCollection<ITaskItem> Items
+        public MvxObservableCollection<ITaskItem> Items
         {
             get => items;
             set
