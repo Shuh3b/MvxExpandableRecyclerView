@@ -1,8 +1,8 @@
 ﻿using Android.OS;
 using Android.Runtime;
+using Java.Interop;
 using Java.Lang;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 {
@@ -11,6 +11,11 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
     /// </summary>
     internal class MvxExpandableRecyclerParcel : Object, IParcelable
     {
+        private static readonly ParcelableCreator<MvxExpandableRecyclerParcel> creator = new ParcelableCreator<MvxExpandableRecyclerParcel>((parcel) => new MvxExpandableRecyclerParcel(parcel));
+
+        [ExportField("CREATOR")]
+        public static ParcelableCreator<MvxExpandableRecyclerParcel> GetCreator() => creator;
+
         public MvxExpandableRecyclerParcel()
         { }
 
@@ -19,7 +24,18 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             SuperState = (IParcelable)parcel.ReadParcelable(Class.ClassLoader);
             StickyHeaderPosition = parcel.ReadInt();
             ShowStickyHeader = parcel.ReadBoolean();
-            parcel.ReadList(Headers.ToList(), Class.ClassLoader);
+            Bundle bundle = parcel.ReadBundle();
+            if (bundle != null)
+            {
+                int count = bundle.GetInt("count", 0);
+                Dictionary<int, bool> headers = new Dictionary<int, bool>();
+
+                for (int i = 0; i < count; i++)
+                {
+                    headers[i] = bundle.GetBoolean(i.ToString());
+                }
+                Headers = headers;
+            }
         }
 
         public IParcelable SuperState { get; set; }
@@ -28,23 +44,23 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 
         public bool ShowStickyHeader { get; set; }
 
-        public IList<ITaskHeader> Headers { get; set; }
+        public IDictionary<int, bool> Headers { get; set; }
 
         public int DescribeContents() => 0;
 
         public void WriteToParcel(Parcel dest, [GeneratedEnum] ParcelableWriteFlags flags)
         {
-            try
+            dest.WriteParcelable(SuperState, flags);
+            dest.WriteInt(StickyHeaderPosition);
+            dest.WriteBoolean(ShowStickyHeader);
+
+            Bundle bundle = new Bundle();
+            bundle.PutInt("count", Headers?.Count ?? 0);
+            foreach (var header in Headers)
             {
-                dest.WriteParcelable(SuperState, flags);
-                dest.WriteInt(StickyHeaderPosition);
-                dest.WriteBoolean(ShowStickyHeader);
-                dest.WriteList(Headers.ToList());
+                bundle.PutBoolean(header.Key.ToString(), header.Value);
             }
-            catch
-            {
-                // TODO: A null exception occurs when phone screen turns off. Fix bug and remove try-catch.
-            }
+            dest.WriteBundle(bundle);
         }
     }
 }

@@ -8,7 +8,6 @@ using AndroidX.RecyclerView.Widget;
 using Java.Lang;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 {
@@ -133,12 +132,19 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// <inheritdoc/>
         public override IParcelable OnSaveInstanceState()
         {
+            var headers = adapter.ItemCount > 0 ? adapter.GetHeaders() : new List<ITaskHeader>();
+            Dictionary<int, bool> headerStates = new Dictionary<int, bool>();
+            for (int i = 0; i < headers.Count; i++)
+            {
+                headerStates[i] = headers[i].IsCollapsed;
+            }
+
             MvxExpandableRecyclerParcel parcel = new MvxExpandableRecyclerParcel
             {
                 SuperState = base.OnSaveInstanceState(),
                 StickyHeaderPosition = stickyHeaderPosition,
                 ShowStickyHeader = showStickyHeader,
-                Headers = adapter.ItemCount > 0 ? adapter.GetHeaders() : new List<ITaskHeader>(),
+                Headers = headerStates,
             };
 
             return parcel;
@@ -152,12 +158,12 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             ShowStickyHeader = parcel.ShowStickyHeader;
             if (adapter?.ItemCount > 0)
             {
-                foreach (ITaskHeader header in parcel.Headers)
+                var headers = adapter.GetHeaders();
+                for (int i = 0; i < headers.Count; i++)
                 {
-                    ITaskHeader realHeader = adapter.GetHeader(header);
-                    if (realHeader != null && realHeader.IsCollapsed != header.IsCollapsed)
+                    if (parcel.Headers.ContainsKey(i) && parcel.Headers[i] != headers[i].IsCollapsed)
                     {
-                        adapter.OnHeaderClick(realHeader);
+                        adapter.OnHeaderClick(headers[i]);
                     }
                 }
             }
@@ -261,7 +267,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             int contactPoint = stickyHeaderView.Bottom;
             View childInContact = null;
             List<View> pendingChildren = new List<View>();
-            bool isHeader = false;
+            bool isHeaderPending = false;
 
             for (int childPos = 0; childPos < ChildCount; childPos++)
             {
@@ -272,22 +278,22 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
                     break;
                 }
 
-                if (child.Top > 0 && child.Bottom <= contactPoint && (adapter.IsHeader(GetPosition(child)) || isHeader))
+                if (child.Top > 0 && child.Bottom < contactPoint && (adapter.IsHeader(GetPosition(child)) || isHeaderPending))
                 {
-                    isHeader = true;
+                    isHeaderPending = true;
                     pendingChildren.Add(child);
                 }
             }
 
             int adapterPosition = GetPosition(childInContact);
-            if (adapterPosition != RecyclerView.NoPosition && adapterPosition <= ItemCount && (adapter.IsHeader(adapterPosition) || pendingChildren.Any(i => adapter.IsHeader(GetPosition(i)))))
+            if (adapterPosition != RecyclerView.NoPosition && adapterPosition <= ItemCount && (adapter.IsHeader(adapterPosition) || isHeaderPending))
             {
-                int height = 0;
+                int pendingHeight = 0;
                 foreach (View child in pendingChildren)
                 {
-                    height += child.Height;
+                    pendingHeight += child.Height;
                 }
-                stickyHeaderView.TranslationY = childInContact.Top - stickyHeaderView.Height - height;
+                stickyHeaderView.TranslationY = childInContact.Top - stickyHeaderView.Height - pendingHeight;
             }
             else
             {

@@ -5,7 +5,7 @@
 		<AssemblyName>MvvmCross.ExpandableRecyclerView.DroidX</AssemblyName>
 		<PackageId>MvxExpandableRecyclerView.DroidX</PackageId>
 		<RootNamespace>MvvmCross.ExpandableRecyclerView.DroidX</RootNamespace>
-		<Version>3.0.1</Version>
+		<Version>3.0.2</Version>
 		<Authors>Mohammed Ali Ahmed</Authors>
 		<Company>Mohammed Ali Ahmed</Company>
 		<Product>MvxExpandableRecyclerView</Product>
@@ -22,6 +22,10 @@ This is an unofficial package that contains an expandable AndroidX RecyclerView 
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <AndroidResource Include="Resources\values\ExpandableRecyclerViewIds.xml" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.0" />
