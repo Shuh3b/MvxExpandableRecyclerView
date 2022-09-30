@@ -1,10 +1,8 @@
 ﻿using Android.Content;
-using Android.OS;
 using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
-using AndroidX.Core.View;
 using AndroidX.RecyclerView.Widget;
 using MvvmCross.Binding.Attributes;
 using MvvmCross.DroidX.RecyclerView.ItemTemplates;
@@ -219,31 +217,11 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
             set => expandableRecyclerBaseView.EnableSwipe = value;
         }
 
-        /// <inheritdoc/>
-        protected override IParcelable OnSaveInstanceState()
-        {
-            Bundle bundle = new Bundle();
-            bundle.PutInt("viewId", expandableRecyclerBaseView.Id);
-            bundle.PutParcelable("superState", base.OnSaveInstanceState());
-            return bundle;
-        }
-
-        /// <inheritdoc/>
-        protected override void OnRestoreInstanceState(IParcelable state)
-        {
-            Bundle bundle = (Bundle)state;
-            expandableRecyclerBaseView.Id = bundle.GetInt("viewId");
-            IParcelable superState = (IParcelable)bundle.GetParcelable("superState");
-            base.OnRestoreInstanceState(superState);
-        }
-
         private void InitialiseRecyclerView()
         {
-            expandableRecyclerBaseView.HasFixedSize = true;
-
             if (expandableRecyclerBaseView.Id == Id)
             {
-                expandableRecyclerBaseView.Id = ViewCompat.GenerateViewId();
+                expandableRecyclerBaseView.Id = Resource.Id.mvx_expandable_recycler_base_view;
             }
 
             AddView(expandableRecyclerBaseView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent));
