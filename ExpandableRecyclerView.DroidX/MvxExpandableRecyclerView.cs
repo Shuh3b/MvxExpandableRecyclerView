@@ -54,12 +54,12 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         { }
 
         /// <summary>
-        /// Getter for acessing <see cref="AndroidX.RecyclerView.Widget.RecyclerView"/>.
+        /// Getter for accessing <see cref="AndroidX.RecyclerView.Widget.RecyclerView"/>.
         /// </summary>
         public RecyclerView RecyclerView => expandableRecyclerBaseView;
 
         /// <summary>
-        /// <see cref="MvxExpandableRecyclerAdapter{THeader}"/>.
+        /// <see cref="MvxExpandableRecyclerAdapter{THeader}"/> being used.
         /// </summary>
         [MvxSetToNullAfterBinding]
         public IMvxExpandableRecyclerAdapter Adapter
