@@ -230,7 +230,7 @@ And `DeleteTaskItemBackground.xml`:
 
 __Important:__ The important thing to notice in these files is that each layout has an `android:tag` attribute. This is important for the control because it identifies which layout to show when swiping left or right, or not swiping at all. The `android:tag`s needed for the control are `android:tag="swipe_right_background"` (show layout when swiping right), `android:tag="swipe_left_background"` (show layout when swiping left) and `android:tag="swipe_foreground"` (show layout for item when user is not swiping). 
 
-We then modify our `PersonItem.xml` to include these layouts and ___make sure to wrap everything in a `FrameLayout`, making sure the background layouts are added first.___ We also need to add `android:tag="swipe_foreground"` to the `LinearLayout` tag holding all our `PersonItem` bindings for it show the layout when the user isn't swiping.
+We then modify our `PersonItem.xml` to include these layouts and ___make sure to wrap everything in a `FrameLayout`, making sure the background layouts are added first.___ We also need to add `android:tag="swipe_foreground"` to the nested `FrameLayout` tag holding all our `PersonItem` bindings for it show the layout when the user isn't swiping.
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
