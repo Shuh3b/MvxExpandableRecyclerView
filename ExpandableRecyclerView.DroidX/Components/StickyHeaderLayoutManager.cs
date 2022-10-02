@@ -112,8 +112,8 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 
             if (showStickyHeader && !adapter.IsDragging)
             {
-                TranslateStickyHeader(); // Fixes edge-case where one header can overlap another, causing a visual glitch.
                 UpdateStickyHeader();
+                TranslateStickyHeader(); // Fixes edge-case where one header can overlap another, causing a visual glitch.
             }
         }
 
@@ -128,8 +128,8 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             int scroll = base.ScrollVerticallyBy(dy, recycler, state);
             if (showStickyHeader)
             {
-                TranslateStickyHeader();
                 UpdateStickyHeaderState();
+                TranslateStickyHeader();
             }
 
             return scroll;
@@ -138,7 +138,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// <inheritdoc/>
         public override IParcelable OnSaveInstanceState()
         {
-            var headers = adapter.ItemCount > 0 ? adapter.GetHeaders() : new List<ITaskHeader>();
+            var headers = adapter?.ItemCount > 0 ? adapter.GetHeaders() : new List<ITaskHeader>();
             Dictionary<int, bool> headerStates = new Dictionary<int, bool>();
             for (int i = 0; i < headers.Count; i++)
             {

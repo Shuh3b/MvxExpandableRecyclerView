@@ -1,4 +1,5 @@
 ﻿using Android.OS;
+using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,7 @@ using MvvmCross.DroidX.RecyclerView;
 using MvvmCross.DroidX.RecyclerView.ItemTemplates;
 using MvvmCross.DroidX.RecyclerView.Model;
 using MvvmCross.ExpandableRecyclerView.Core;
+using MvvmCross.ExpandableRecyclerView.DroidX.Components;
 using MvvmCross.Platforms.Android.Binding.BindingContext;
 using MvvmCross.WeakSubscription;
 using System;
@@ -129,6 +131,29 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
 
         /// <inheritdoc/>
         public override int ItemCount => viewItemsSource?.Count ?? 0;
+
+        /// <inheritdoc/>
+        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
+        {
+            if (parent == null)
+            {
+                throw new ArgumentNullException(nameof(parent), "parent is null, cannot get Android Context.");
+            }
+
+            if (BindingContext == null)
+            {
+                throw new InvalidOperationException("BindingContext is null. Cannot inflate view for ViewHolder");
+            }
+
+            MvxAndroidBindingContext itemBindingContext = new MvxAndroidBindingContext(parent.Context, BindingContext.LayoutInflaterHolder);
+            View view = InflateViewForHolder(parent, viewType, itemBindingContext);
+            MvxSwipeRecyclerViewHolder viewHolder = new MvxSwipeRecyclerViewHolder(view, itemBindingContext)
+            {
+                Id = viewType
+            };
+
+            return viewHolder;
+        }
 
         /// <inheritdoc/>
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
@@ -340,7 +365,7 @@ All changes must be synchronized on the main thread.");
                 {
                     if (ItemSwipeLeft == null)
                     {
-                        throw new ArgumentNullException(nameof(ItemSwipeLeft), $"Either implement swipe feature and bind to {nameof(ItemSwipeLeft)} or disable swiping towards start direction.");
+                        throw new ArgumentNullException(nameof(ItemSwipeLeft), $"Either implement swipe feature and bind to {nameof(ItemSwipeLeft)} or disable swiping towards the left.");
                     }
 
                     ExecuteCommandOnItem(ItemSwipeLeft, holder.DataContext);
@@ -349,7 +374,7 @@ All changes must be synchronized on the main thread.");
                 {
                     if (ItemSwipeRight == null)
                     {
-                        throw new ArgumentNullException(nameof(ItemSwipeRight), $"Either implement swipe feature and bind to {nameof(ItemSwipeRight)} or disable swiping towards end direction.");
+                        throw new ArgumentNullException(nameof(ItemSwipeRight), $"Either implement swipe feature and bind to {nameof(ItemSwipeRight)} or disable swiping towards the right.");
                     }
 
                     ExecuteCommandOnItem(ItemSwipeRight, holder.DataContext);

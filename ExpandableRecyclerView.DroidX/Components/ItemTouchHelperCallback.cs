@@ -1,4 +1,5 @@
-﻿using AndroidX.RecyclerView.Widget;
+﻿using Android.Graphics;
+using AndroidX.RecyclerView.Widget;
 using MvvmCross.DroidX.RecyclerView;
 using MvvmCross.ExpandableRecyclerView.Core;
 
@@ -83,6 +84,10 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         public override void OnSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState)
         {
             base.OnSelectedChanged(viewHolder, actionState);
+            if (viewHolder is MvxSwipeRecyclerViewHolder swipeViewHolder)
+            {
+                DefaultUIUtil.OnSelected(swipeViewHolder.Foreground);
+            }
             adapter.OnSelectedChanged(viewHolder, actionState);
         }
 
@@ -90,7 +95,41 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         public override void ClearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder)
         {
             base.ClearView(recyclerView, viewHolder);
+            if (viewHolder is MvxSwipeRecyclerViewHolder swipeViewHolder)
+            {
+                DefaultUIUtil.ClearView(swipeViewHolder.Foreground);
+            }
             adapter.OnClearView(recyclerView, viewHolder);
+        }
+
+        /// <inheritdoc/>
+        public override void OnChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, bool isCurrentlyActive)
+        {
+            if (viewHolder is MvxSwipeRecyclerViewHolder swipeViewHolder && actionState == ItemTouchHelper.ActionStateSwipe)
+            {
+                SetBackground(swipeViewHolder, dX);
+
+                DefaultUIUtil.OnDraw(c, recyclerView, swipeViewHolder.Foreground, dX, dY, actionState, isCurrentlyActive);
+            }
+            else
+            {
+                base.OnChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            }
+        }
+
+        /// <inheritdoc/>
+        public override void OnChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, bool isCurrentlyActive)
+        {
+            if (viewHolder is MvxSwipeRecyclerViewHolder swipeViewHolder && actionState == ItemTouchHelper.ActionStateSwipe)
+            {
+                SetBackground(swipeViewHolder, dX);
+
+                DefaultUIUtil.OnDrawOver(c, recyclerView, swipeViewHolder.Foreground, dX, dY, actionState, isCurrentlyActive);
+            }
+            else
+            {
+                base.OnChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            }
         }
 
         private int MakeDragFlags(TaskHeaderRule rules)
@@ -119,7 +158,19 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             }
             else
             {
-                return ItemTouchHelper.Left | ItemTouchHelper.Right;
+                return ItemTouchHelper.Right | ItemTouchHelper.Left;
+            }
+        }
+
+        private void SetBackground(MvxSwipeRecyclerViewHolder swipeViewHolder, float dX)
+        {
+            if (dX > 0)
+            {
+                swipeViewHolder.IsSwipingRight = true;
+            }
+            else if (dX < 0)
+            {
+                swipeViewHolder.IsSwipingRight = false;
             }
         }
     }

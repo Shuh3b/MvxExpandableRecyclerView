@@ -5,7 +5,7 @@
 		<AssemblyName>MvvmCross.ExpandableRecyclerView.DroidX</AssemblyName>
 		<PackageId>MvxExpandableRecyclerView.DroidX</PackageId>
 		<RootNamespace>MvvmCross.ExpandableRecyclerView.DroidX</RootNamespace>
-		<Version>3.0.3</Version>
+		<Version>3.1.0</Version>
 		<Authors>Mohammed Ali Ahmed</Authors>
 		<Company>Mohammed Ali Ahmed</Company>
 		<Product>MvxExpandableRecyclerView</Product>
@@ -35,10 +35,6 @@ This is an unofficial package that contains an expandable AndroidX RecyclerView 
 
 	<ItemGroup>
 		<ProjectReference Include="..\ExpandableRecyclerView.Core\ExpandableRecyclerView.Core.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Helpers\" />
 	</ItemGroup>
 
 </Project>
