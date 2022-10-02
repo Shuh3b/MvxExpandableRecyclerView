@@ -284,4 +284,8 @@ A sticky header is always shown by default, however we can hide the sticky heade
 		 ShowStickyHeader false;"/>
 ```
 
+# Android MvxExpandableRecyclerViewSample
+
+The [`MvxExpandableRecyclerViewSample`](https://github.com/Shuh3b/MvxExpandableRecyclerViewSample) demonstrates how to implement the `MvxExpandableRecyclerView` package into a simple project.
+
 [^1]: If you don’t provide an item template selector `MvxExpandableRecyclerView` will fall back to using a `SimpleListItem1`, which is a built in Android Resource. It will also just call `ToString()` on your item that you are supplying. A custom view should be used for headers, if items aren't grouped using a `string`.
