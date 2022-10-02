@@ -1,4 +1,5 @@
-﻿using MvvmCross.ExpandableRecyclerView.Core;
+﻿using AndroidX.RecyclerView.Widget;
+using MvvmCross.ExpandableRecyclerView.Core;
 using System.Collections.Generic;
 
 namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
@@ -63,6 +64,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// Action for clicking on header.
         /// </summary>
         /// <param name="header">Header that was clicked.</param>
-        void OnHeaderClick(ITaskHeader header);
+        /// <param name="suppress">Should suppress notify methods for <see cref="RecyclerView"/>.</param>
+        void OnHeaderClick(ITaskHeader header, bool suppress = false);
     }
 }

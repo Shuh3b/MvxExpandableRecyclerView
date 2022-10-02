@@ -479,7 +479,7 @@ All changes must be synchronized on the main thread.");
         }
 
         /// <inheritdoc/>
-        public void OnHeaderClick(ITaskHeader header)
+        public void OnHeaderClick(ITaskHeader header, bool suppress = false)
         {
             int position = viewItemsSource.GetPosition(header) + 1;
 
@@ -492,7 +492,10 @@ All changes must be synchronized on the main thread.");
                     viewItemsSource.Insert(pos++, item);
                 }
                 header.IsCollapsed = false;
-                NotifyItemRangeInserted(position, itemsToAdd.Count);
+                if (!suppress)
+                {
+                    NotifyItemRangeInserted(position, itemsToAdd.Count);
+                }
             }
             else
             {
@@ -502,7 +505,10 @@ All changes must be synchronized on the main thread.");
                     viewItemsSource.Remove(item);
                 }
                 header.IsCollapsed = true;
-                NotifyItemRangeRemoved(position, itemsToRemove.Count);
+                if (!suppress)
+                {
+                    NotifyItemRangeRemoved(position, itemsToRemove.Count);
+                }
             }
         }
 

@@ -28,7 +28,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// <param name="attrs">Attrs.</param>
         /// <param name="adapter">Adapter.</param>
         public StickyHeaderLayoutManager(Context context, IAttributeSet attrs, IStickyHeaderHelper adapter)
-            : base(context, OrientationHelper.Vertical, false)
+            : base(context, Vertical, false)
         {
             this.adapter = adapter;
             stickyHeaderView = new StickyHeaderView(context, attrs);
@@ -103,7 +103,13 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// <inheritdoc/>
         public override void OnLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state)
         {
-            base.OnLayoutChildren(recycler, state);
+            try
+            {
+                base.OnLayoutChildren(recycler, state);
+            }
+            catch (IndexOutOfBoundsException e)
+            { }
+
             if (showStickyHeader && !adapter.IsDragging)
             {
                 TranslateStickyHeader(); // Fixes edge-case where one header can overlap another, causing a visual glitch.
@@ -163,10 +169,11 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
                 {
                     if (parcel.Headers.ContainsKey(i) && parcel.Headers[i] != headers[i].IsCollapsed)
                     {
-                        adapter.OnHeaderClick(headers[i]);
+                        adapter.OnHeaderClick(headers[i], true);
                     }
                 }
             }
+            InitStickyHeader();
 
             base.OnRestoreInstanceState(parcel.SuperState);
         }
@@ -182,7 +189,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 
         private void InitStickyHeader()
         {
-            if (adapter.ItemCount > 0)
+            if (adapter?.ItemCount > 0)
             {
                 int headerPosition = adapter.GetHeaderPosition(stickyHeaderPosition);
                 int headerViewType = adapter.GetItemViewType(headerPosition);
