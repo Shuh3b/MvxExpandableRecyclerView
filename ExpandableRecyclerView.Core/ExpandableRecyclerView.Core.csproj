@@ -5,7 +5,7 @@
 		<AssemblyName>MvvmCross.ExpandableRecyclerView.Core</AssemblyName>
 		<PackageId>MvxExpandableRecyclerView.Core</PackageId>
 		<RootNamespace>MvvmCross.ExpandableRecyclerView.Core</RootNamespace>
-		<Version>3.1.0</Version>
+		<Version>3.1.1</Version>
 		<Authors>Mohammed Ali Ahmed</Authors>
 		<Company>Mohammed Ali Ahmed</Company>
 		<Product>MvxExpandableRecyclerView</Product>

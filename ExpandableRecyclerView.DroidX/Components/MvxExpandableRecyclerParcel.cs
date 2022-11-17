@@ -23,12 +23,12 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         {
             SuperState = (IParcelable)parcel.ReadParcelable(Class.ClassLoader);
             StickyHeaderPosition = parcel.ReadInt();
-            ShowStickyHeader = parcel.ReadBoolean();
+            ShowStickyHeader = parcel.ReadInt() == 1;
             Bundle bundle = parcel.ReadBundle();
             if (bundle != null)
             {
                 int count = bundle.GetInt("count", 0);
-                Dictionary<int, bool> headers = new Dictionary<int, bool>();
+                IDictionary<int, bool> headers = new Dictionary<int, bool>();
 
                 for (int i = 0; i < count; i++)
                 {
@@ -52,11 +52,11 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         {
             dest.WriteParcelable(SuperState, flags);
             dest.WriteInt(StickyHeaderPosition);
-            dest.WriteBoolean(ShowStickyHeader);
+            dest.WriteInt(ShowStickyHeader ? 1 : 0);
 
             Bundle bundle = new Bundle();
             bundle.PutInt("count", Headers?.Count ?? 0);
-            foreach (var header in Headers)
+            foreach (KeyValuePair<int, bool> header in Headers)
             {
                 bundle.PutBoolean(header.Key.ToString(), header.Value);
             }

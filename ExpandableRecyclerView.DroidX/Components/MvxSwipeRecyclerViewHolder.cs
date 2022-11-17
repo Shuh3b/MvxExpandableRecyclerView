@@ -11,9 +11,9 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
     /// </summary>
     public class MvxSwipeRecyclerViewHolder : MvxRecyclerViewHolder
     {
-        private const string foregroundId = "swipe_foreground";
-        private const string swipeRightId = "swipe_right_background";
-        private const string swipeLeftId = "swipe_left_background";
+        private const string ForegroundTag = "swipe_foreground";
+        private const string SwipeRightTag = "swipe_right_background";
+        private const string SwipeLeftTag = "swipe_left_background";
         private View foreground, swipeLeftBackground, swipeRightBackground;
         private bool isSwipingRight;
 
@@ -25,9 +25,9 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         public MvxSwipeRecyclerViewHolder(View itemView, IMvxAndroidBindingContext context)
             : base(itemView, context)
         {
-            foreground = itemView.FindViewWithTag(foregroundId);
-            swipeRightBackground = itemView.FindViewWithTag(swipeRightId);
-            swipeLeftBackground = itemView.FindViewWithTag(swipeLeftId);
+            foreground = itemView.FindViewWithTag(ForegroundTag);
+            swipeRightBackground = itemView.FindViewWithTag(SwipeRightTag);
+            swipeLeftBackground = itemView.FindViewWithTag(SwipeLeftTag);
 
             if (swipeRightBackground != null)
             {

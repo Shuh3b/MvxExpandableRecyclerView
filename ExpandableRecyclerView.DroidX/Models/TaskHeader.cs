@@ -83,7 +83,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
                 return;
             }
 
-            var lastSequencedItem = items.LastOrDefault(i => i.Sequence.HasValue);
+            ITaskItem lastSequencedItem = items.LastOrDefault(i => i.Sequence.HasValue);
             int lastSequencedPosition = items.GetPosition(lastSequencedItem);
 
             if (lastSequencedPosition < 0)
