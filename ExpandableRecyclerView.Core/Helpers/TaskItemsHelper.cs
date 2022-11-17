@@ -115,13 +115,19 @@ namespace MvvmCross.ExpandableRecyclerView.Core.Helpers
         /// <param name="collection">The <see cref="IList{T}"/> to retrieve the item from.</param>
         /// <param name="taskItem">The item to update.</param>
         /// <param name="taskHeader">The header to update the item's header to.</param>
-        public static void Update(this IList<ITaskItem> collection, ITaskItem taskItem, object taskHeader)
+        /// <param name="preserveSequence">Whether the sequence should be preserved when updating item.</param>
+        public static void Update(this IList<ITaskItem> collection, ITaskItem taskItem, object taskHeader, bool preserveSequence = false)
         {
             ITaskItem item = collection.FirstOrDefault(i => i == taskItem);
 
+            int? sequence = item.Sequence;
             if (collection.Remove(taskItem))
             {
                 item.Header = taskHeader;
+                if (preserveSequence)
+                {
+                    item.Sequence = sequence;
+                }
                 collection.Add(taskItem);
             }
         }

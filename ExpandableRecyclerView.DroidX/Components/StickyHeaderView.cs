@@ -46,7 +46,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 
             if (!(context is IMvxLayoutInflaterHolder))
             {
-                throw new MvxException("The owning Context for a MvxFrameControl must implement LayoutInflater");
+                throw new MvxException("The owning Context for a StickyHeaderView must implement LayoutInflater");
             }
 
             bindingContext = new MvxAndroidBindingContext(context, (IMvxLayoutInflaterHolder)context);
@@ -54,7 +54,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             {
                 if (Content == null && this.templateId != 0)
                 {
-                    MvxLogHost.GetLog<MvxFrameControl>()?.Log(LogLevel.Trace, "DataContext is {dataContext}", DataContext?.ToString() ?? "Null");
+                    MvxLogHost.GetLog<StickyHeaderView>()?.Log(LogLevel.Trace, "DataContext is {dataContext}", DataContext?.ToString() ?? "Null");
                     Content = bindingContext.BindingInflate(this.templateId, this);
                 }
             });
@@ -90,7 +90,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
                 templateId = value;
                 if (templateId != 0)
                 {
-                    MvxLogHost.GetLog<MvxFrameControl>()?.Log(LogLevel.Trace, "DataContext is {dataContext}", DataContext?.ToString() ?? "Null");
+                    MvxLogHost.GetLog<StickyHeaderView>()?.Log(LogLevel.Trace, "DataContext is {dataContext}", DataContext?.ToString() ?? "Null");
                     this.ClearAllBindings();
                     RemoveAllViews();
                     Content = bindingContext.BindingInflate(templateId, this);

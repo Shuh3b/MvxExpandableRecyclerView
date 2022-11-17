@@ -138,7 +138,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// <inheritdoc/>
         public override IParcelable OnSaveInstanceState()
         {
-            var headers = adapter?.ItemCount > 0 ? adapter.GetHeaders() : new List<ITaskHeader>();
+            IList<ITaskHeader> headers = adapter?.ItemCount > 0 ? adapter.GetHeaders() : new List<ITaskHeader>();
             Dictionary<int, bool> headerStates = new Dictionary<int, bool>();
             for (int i = 0; i < headers.Count; i++)
             {
@@ -164,7 +164,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             ShowStickyHeader = parcel.ShowStickyHeader;
             if (adapter?.ItemCount > 0)
             {
-                var headers = adapter.GetHeaders();
+                IList<ITaskHeader> headers = adapter.GetHeaders();
                 for (int i = 0; i < headers.Count; i++)
                 {
                     if (parcel.Headers.ContainsKey(i) && parcel.Headers[i] != headers[i].IsCollapsed)
@@ -292,6 +292,11 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
                 }
             }
 
+            TranslateViewInContact(childInContact, isHeaderPending, pendingChildren);
+        }
+
+        private void TranslateViewInContact(View childInContact, bool isHeaderPending, IList<View> pendingChildren)
+        {
             int adapterPosition = GetPosition(childInContact);
             if (adapterPosition != RecyclerView.NoPosition && adapterPosition <= ItemCount && (adapter.IsHeader(adapterPosition) || isHeaderPending))
             {

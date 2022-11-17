@@ -54,9 +54,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
             : base(bindingContext)
         { }
 
-        /// <summary>
-        /// Item that was last interacted with.
-        /// </summary>
+        /// <inheritdoc/>
         public ITaskItem SelectedItem => selectedItem;
 
         /// <inheritdoc/>
@@ -510,7 +508,7 @@ All changes must be synchronized on the main thread.");
 
             if (header.IsCollapsed)
             {
-                var itemsToAdd = header.Items;
+                IList<ITaskItem> itemsToAdd = header.Items;
                 int pos = position;
                 foreach (ITaskItem item in itemsToAdd)
                 {
@@ -524,7 +522,7 @@ All changes must be synchronized on the main thread.");
             }
             else
             {
-                var itemsToRemove = header.Items;
+                IList<ITaskItem> itemsToRemove = header.Items;
                 foreach (ITaskItem item in itemsToRemove)
                 {
                     viewItemsSource.Remove(item);
@@ -556,9 +554,9 @@ All changes must be synchronized on the main thread.");
             var groupedItems = items.Where(i => !(i is ITaskHeader)).OrderBy(i => i.Header).GroupBy(i => i.Header);
             List<ITaskItem> taskItems = new List<ITaskItem>();
 
-            Dictionary<ITaskHeader, List<ITaskItem>> sortedHeaderAndItems = new Dictionary<ITaskHeader, List<ITaskItem>>();
+            Dictionary<ITaskHeader, List<ITaskItem>> groupedHeaderItems = new Dictionary<ITaskHeader, List<ITaskItem>>();
 
-            foreach (var group in groupedItems)
+            foreach (IGrouping<object, ITaskItem> group in groupedItems)
             {
                 ITaskHeader generatedHeader = GenerateHeader((THeader)group.Key);
 
@@ -570,17 +568,17 @@ All changes must be synchronized on the main thread.");
                     }
                 }
 
-                if (sortedHeaderAndItems.Keys.Any(h => h.Header.Equals(generatedHeader.Header)))
+                if (groupedHeaderItems.Keys.Any(h => h.Header.Equals(generatedHeader.Header)))
                 {
-                    sortedHeaderAndItems.First(h => h.Key.Header.Equals(generatedHeader.Header)).Value.AddRange(group);
+                    groupedHeaderItems.First(h => h.Key.Header.Equals(generatedHeader.Header)).Value.AddRange(group);
                 }
                 else
                 {
-                    sortedHeaderAndItems[generatedHeader] = new List<ITaskItem>(group);
+                    groupedHeaderItems[generatedHeader] = new List<ITaskItem>(group);
                 }
             }
-
-            foreach (var headerItems in sortedHeaderAndItems)
+            
+            foreach (KeyValuePair<ITaskHeader, List<ITaskItem>> headerItems in groupedHeaderItems.OrderBy(i => i.Key.Header))
             {
                 headerItems.Key.Items.ReplaceWith(headerItems.Value.OrderByDescending(i => i.Sequence.HasValue).ThenBy(i => i.Sequence));
                 taskItems.Add(headerItems.Key);
@@ -724,15 +722,11 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
                 return true;
             }
 
-            var orderedHeaders = headers.OrderBy(h => h.Header);
+            IEnumerable<ITaskHeader> orderedHeaders = headers.OrderBy(h => h.Header);
 
             int aboveHeaderPosition = orderedHeaders.GetPosition(header) - 1;
-            int newHeaderPosition;
-            if (aboveHeaderPosition < 0)
-            {
-                newHeaderPosition = 0;
-            }
-            else
+            int newHeaderPosition = 0;
+            if (aboveHeaderPosition > 0)
             {
                 ITaskHeader aboveHeader = orderedHeaders.ElementAt(aboveHeaderPosition);
                 newHeaderPosition = viewItemsSource.GetPosition(aboveHeader) + CountVisibleItemsInHeader(aboveHeader) + 1;
@@ -783,7 +777,7 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
             ITaskHeader itemHeader = GetHeader(item);
             if (itemHeader?.Rules.HasFlag(TaskHeaderRule.Temporary) == true)
             {
-                var items = itemHeader.Items;
+                IList<ITaskItem> items = itemHeader.Items;
                 if (items?.Count > 0)
                 {
                     return false;
@@ -804,17 +798,17 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
         /// This helper method prevents crashes when dataset has been modified before the RecyclerView has finished computing its layout.
         /// </summary>
         /// <param name="recyclerView"><see cref="RecyclerView"/>.</param>
-        /// <param name="notify">Notify method.</param>
+        /// <param name="notifyItem">Notify item method.</param>
         /// <param name="position">Position of ViewHolder.</param>
-        private void Notify(RecyclerView recyclerView, Action<int> notify, int position)
+        private void Notify(RecyclerView recyclerView, Action<int> notifyItem, int position)
         {
             if (recyclerView?.IsComputingLayout == true)
             {
-                recyclerView.Post(() => notify?.Invoke(position));
+                recyclerView.Post(() => notifyItem?.Invoke(position));
             }
             else
             {
-                notify?.Invoke(position);
+                notifyItem?.Invoke(position);
             }
         }
 
@@ -822,18 +816,18 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
         /// This helper method prevents crashes when dataset range has been modified before the RecyclerView has finished computing its layout.
         /// </summary>
         /// <param name="recyclerView"><see cref="RecyclerView"/>.</param>
-        /// <param name="notifyRange">Notify range method.</param>
+        /// <param name="notifyItemsRange">Notify items range method.</param>
         /// <param name="pos0">First parameter for given method.</param>
         /// <param name="pos1">Second parameter for given method.</param>
-        private void Notify(RecyclerView recyclerView, Action<int, int> notifyRange, int pos0, int pos1)
+        private void Notify(RecyclerView recyclerView, Action<int, int> notifyItemsRange, int pos0, int pos1)
         {
             if (recyclerView?.IsComputingLayout == true)
             {
-                recyclerView.Post(() => notifyRange?.Invoke(pos0, pos1));
+                recyclerView.Post(() => notifyItemsRange?.Invoke(pos0, pos1));
             }
             else
             {
-                notifyRange?.Invoke(pos0, pos1);
+                notifyItemsRange?.Invoke(pos0, pos1);
             }
         }
 

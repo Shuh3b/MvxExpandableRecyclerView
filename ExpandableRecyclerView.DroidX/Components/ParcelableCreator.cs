@@ -3,17 +3,21 @@ using System;
 
 namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 {
-    internal class ParcelableCreator<T> : Java.Lang.Object, IParcelableCreator where T : Java.Lang.Object, new()
+    /// <summary>
+    /// Generic class that will create an instance of <see cref="IParcelable"/>.
+    /// </summary>
+    /// <typeparam name="TParcelable">Type of parcelable object.</typeparam>
+    internal class ParcelableCreator<TParcelable> : Java.Lang.Object, IParcelableCreator where TParcelable : Java.Lang.Object, new()
     {
         /// <summary>
         /// Function for the creation of a parcel.
         /// </summary>
-        private readonly Func<Parcel, T> createFunc;
+        private readonly Func<Parcel, TParcelable> createFunc;
 
         /// <summary>
         /// Initialize an instance of the GenericParcelableCreator.
         /// </summary>
-        public ParcelableCreator(Func<Parcel, T> createFromParcelFunc)
+        public ParcelableCreator(Func<Parcel, TParcelable> createFromParcelFunc)
         {
             createFunc = createFromParcelFunc;
         }
@@ -26,6 +30,6 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// <summary>
         /// Create an array from the parcelable class.
         /// </summary>
-        public Java.Lang.Object[] NewArray(int size) => new T[size];
+        public Java.Lang.Object[] NewArray(int size) => new TParcelable[size];
     }
 }
