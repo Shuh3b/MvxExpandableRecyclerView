@@ -47,14 +47,17 @@ namespace MvvmCross.ExpandableRecyclerView.Core
         /// <inheritdoc/>
         public event PropertyChangedEventHandler PropertyChanged;
 
+        /// <inheritdoc/>
         protected virtual void OnPropertyChanged([CallerMemberName] string name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
+        /// <inheritdoc/>
         protected virtual void OnPropertyChanged<T>(Expression<Func<T>> raiser)
         {
             string propName = ((MemberExpression)raiser?.Body).Member.Name;
             OnPropertyChanged(propName);
         }
 
+        /// <inheritdoc/>
         protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string name = null)
         {
             if (!EqualityComparer<T>.Default.Equals(field, value))

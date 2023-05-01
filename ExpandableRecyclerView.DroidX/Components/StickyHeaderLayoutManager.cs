@@ -79,7 +79,9 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             InitStickyHeader();
 
             stickyHeaderView.Click -= OnHeaderViewClick;
+            stickyHeaderView.LongClick -= OnHeaderViewLongClick;
             stickyHeaderView.Click += OnHeaderViewClick;
+            stickyHeaderView.LongClick += OnHeaderViewLongClick;
 
             base.OnAttachedToWindow(view);
         }
@@ -92,6 +94,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
                 stickyHeaderView.DataContext.IsSticky = false;
                 stickyHeaderView.DataContext = null;
                 stickyHeaderView.Click -= OnHeaderViewClick;
+                stickyHeaderView.LongClick -= OnHeaderViewLongClick;
             }
 
             base.OnDetachedFromWindow(view, recycler);
@@ -107,7 +110,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             {
                 base.OnLayoutChildren(recycler, state);
             }
-            catch (IndexOutOfBoundsException e)
+            catch (IndexOutOfBoundsException)
             { }
 
             if (showStickyHeader && !adapter.IsDragging)
@@ -139,7 +142,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         public override IParcelable OnSaveInstanceState()
         {
             IList<ITaskHeader> headers = adapter?.ItemCount > 0 ? adapter.GetHeaders() : new List<ITaskHeader>();
-            Dictionary<int, bool> headerStates = new Dictionary<int, bool>();
+            IDictionary<int, bool> headerStates = new Dictionary<int, bool>();
             for (int i = 0; i < headers.Count; i++)
             {
                 headerStates[i] = headers[i].IsCollapsed;
@@ -180,7 +183,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 
         private void ValidateParentView(RecyclerView view)
         {
-            var parent = view.Parent;
+            IViewParent parent = view.Parent;
             if (!(parent is FrameLayout) && !(parent is AndroidX.CoordinatorLayout.Widget.CoordinatorLayout))
             {
                 throw new IllegalArgumentException("RecyclerView Parent must be either a FrameLayout or CoordinatorLayout");
@@ -217,6 +220,24 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             ITaskHeader header = adapter.GetHeaderAt(headerPosition);
             adapter.OnHeaderClick(header);
             ScrollToPosition(headerPosition);
+        }
+
+        private void OnHeaderViewLongClick(object sender, EventArgs e)
+        {
+            if (adapter.ItemCount <= 0)
+            {
+                return;
+            }
+
+            int position = FindFirstVisibleItemPosition();
+            if (position == RecyclerView.NoPosition)
+            {
+                return;
+            }
+
+            int headerPosition = adapter.GetHeaderPosition(position);
+            ITaskHeader header = adapter.GetHeaderAt(headerPosition);
+            adapter.OnHeaderLongClick(header);
         }
 
         private void UpdateStickyHeaderState()

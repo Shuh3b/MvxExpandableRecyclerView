@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 {
     /// <summary>
-    /// Interface exposing methods used in <see cref="StickyHeaderLayoutManager"/> to display a sticky header on top of <see cref="MvxExpandableRecyclerBaseView"/>.
+    /// Interface exposing properties and methods used in <see cref="StickyHeaderLayoutManager"/> to display a sticky header on top of <see cref="MvxExpandableRecyclerBaseView"/>.
     /// </summary>
     public interface IStickyHeaderHelper
     {
@@ -66,5 +66,11 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// <param name="header">Header that was clicked.</param>
         /// <param name="suppress">Should suppress notify methods for <see cref="RecyclerView"/>.</param>
         void OnHeaderClick(ITaskHeader header, bool suppress = false);
+
+        /// <summary>
+        /// Action for long clicking on header.
+        /// </summary>
+        /// <param name="header">Header that was long clicked.</param>
+        void OnHeaderLongClick(ITaskHeader header);
     }
 }

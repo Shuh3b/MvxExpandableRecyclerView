@@ -5,7 +5,7 @@ using System;
 namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 {
     /// <summary>
-    /// Interface exposing methods used in <see cref="MvxExpandableRecyclerAdapter{THeader}"/> to help with item dragging, swiping, etc.
+    /// Interface exposing properties and methods used in <see cref="MvxExpandableRecyclerAdapter{THeader}"/> to help with item dragging, swiping, etc.
     /// </summary>
     public interface IItemTouchHelperCallback
     {

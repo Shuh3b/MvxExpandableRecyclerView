@@ -1,6 +1,7 @@
 ﻿using Android.Runtime;
 using Android.Views;
 using MvvmCross.DroidX.RecyclerView;
+using MvvmCross.ExpandableRecyclerView.Core;
 using MvvmCross.Platforms.Android.Binding.BindingContext;
 using System;
 
@@ -9,7 +10,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
     /// <summary>
     /// ViewHolder to hold items that show right and left background layouts when item is swiped.
     /// </summary>
-    public class MvxSwipeRecyclerViewHolder : MvxRecyclerViewHolder
+    public class MvxExpandableRecyclerViewHolder : MvxRecyclerViewHolder, IMvxExpandableRecyclerViewHolder
     {
         private const string ForegroundTag = "swipe_foreground";
         private const string SwipeRightTag = "swipe_right_background";
@@ -22,7 +23,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// </summary>
         /// <param name="itemView">View of item.</param>
         /// <param name="context">Context of the item.</param>
-        public MvxSwipeRecyclerViewHolder(View itemView, IMvxAndroidBindingContext context)
+        public MvxExpandableRecyclerViewHolder(View itemView, IMvxAndroidBindingContext context)
             : base(itemView, context)
         {
             foreground = itemView.FindViewWithTag(ForegroundTag);
@@ -43,18 +44,14 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         }
 
         /// <inheritdoc/>
-        protected MvxSwipeRecyclerViewHolder(IntPtr handle, JniHandleOwnership ownership)
+        protected MvxExpandableRecyclerViewHolder(IntPtr handle, JniHandleOwnership ownership)
             : base(handle, ownership)
         { }
 
-        /// <summary>
-        /// The view to display for the item.
-        /// </summary>
+        /// <inheritdoc/>
         public View Foreground => foreground ?? ItemView;
 
-        /// <summary>
-        /// <c>true</c> if item is swiping towards the right. <c>false</c> if swiping left.
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsSwipingRight
         {
             get => isSwipingRight;

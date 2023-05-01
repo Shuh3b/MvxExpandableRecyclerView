@@ -84,7 +84,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         public override void OnSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState)
         {
             base.OnSelectedChanged(viewHolder, actionState);
-            if (viewHolder is MvxSwipeRecyclerViewHolder swipeViewHolder)
+            if (viewHolder is IMvxExpandableRecyclerViewHolder swipeViewHolder)
             {
                 DefaultUIUtil.OnSelected(swipeViewHolder.Foreground);
             }
@@ -95,7 +95,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         public override void ClearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder)
         {
             base.ClearView(recyclerView, viewHolder);
-            if (viewHolder is MvxSwipeRecyclerViewHolder swipeViewHolder)
+            if (viewHolder is IMvxExpandableRecyclerViewHolder swipeViewHolder)
             {
                 DefaultUIUtil.ClearView(swipeViewHolder.Foreground);
             }
@@ -105,7 +105,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// <inheritdoc/>
         public override void OnChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, bool isCurrentlyActive)
         {
-            if (viewHolder is MvxSwipeRecyclerViewHolder swipeViewHolder && actionState == ItemTouchHelper.ActionStateSwipe)
+            if (viewHolder is IMvxExpandableRecyclerViewHolder swipeViewHolder && actionState == ItemTouchHelper.ActionStateSwipe)
             {
                 SetBackground(swipeViewHolder, dX);
 
@@ -120,7 +120,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         /// <inheritdoc/>
         public override void OnChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, bool isCurrentlyActive)
         {
-            if (viewHolder is MvxSwipeRecyclerViewHolder swipeViewHolder && actionState == ItemTouchHelper.ActionStateSwipe)
+            if (viewHolder is IMvxExpandableRecyclerViewHolder swipeViewHolder && actionState == ItemTouchHelper.ActionStateSwipe)
             {
                 SetBackground(swipeViewHolder, dX);
 
@@ -134,7 +134,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
 
         private int MakeDragFlags(TaskHeaderRule rules)
         {
-            if (rules.HasFlag(TaskHeaderRule.DragOutDisabled))
+            if (rules.HasFlag(TaskHeaderRule.DragDisabled))
             {
                 return ItemTouchHelper.ActionStateIdle;
             }
@@ -162,7 +162,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             }
         }
 
-        private void SetBackground(MvxSwipeRecyclerViewHolder swipeViewHolder, float dX)
+        private void SetBackground(IMvxExpandableRecyclerViewHolder swipeViewHolder, float dX)
         {
             if (dX > 0)
             {

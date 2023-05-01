@@ -5,7 +5,9 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using MvvmCross.Binding.Attributes;
+using MvvmCross.DroidX.RecyclerView;
 using MvvmCross.DroidX.RecyclerView.ItemTemplates;
+using MvvmCross.ExpandableRecyclerView.Core;
 using MvvmCross.ExpandableRecyclerView.DroidX.Components;
 using System;
 using System.Collections;
@@ -127,6 +129,26 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         }
 
         /// <summary>
+        /// Whether to enable <see cref="MvxExpandableRecyclerBaseView"/> default item selecting. 
+        /// This will not affect the command bound to <see cref="IMvxRecyclerAdapter.ItemClick"/>.
+        /// </summary>
+        public bool EnableSelect
+        {
+            get => expandableRecyclerBaseView.EnableSelect;
+            set => expandableRecyclerBaseView.EnableSelect = value;
+        }
+
+        /// <summary>
+        /// Whether to enable <see cref="MvxExpandableRecyclerBaseView"/> default item highlighting. 
+        /// This will not affect the command bound to <see cref="IMvxRecyclerAdapter.ItemLongClick"/>.
+        /// </summary>
+        public bool EnableHighlight
+        {
+            get => expandableRecyclerBaseView.EnableHighlight;
+            set => expandableRecyclerBaseView.EnableHighlight = value;
+        }
+
+        /// <summary>
         /// Get or set the <see cref="ICommand"/> to trigger when an item was clicked.
         /// </summary>
         [MvxSetToNullAfterBinding]
@@ -154,6 +176,33 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
                 if (Adapter != null)
                 {
                     Adapter.ItemLongClick = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether to show or hide sticky header.
+        /// </summary>
+        public bool ShowStickyHeader
+        {
+            get => expandableRecyclerBaseView.ShowStickyHeader;
+            set => expandableRecyclerBaseView.ShowStickyHeader = value;
+        }
+
+        /// <summary>
+        /// <para>Get or set the <see cref="ICommand"/> to trigger when a header is long clicked.</para>
+        /// <para>If <see cref="HeaderLongClick"/> is <c>null</c> and <see cref="EnableHighlight"/> is set to <c>true</c>, the RecyclerView will set <see cref="ITaskItem.IsHighlighted"/> for all items under this header.</para>
+        /// <para>If <see cref="HeaderLongClick"/> is not <c>null</c>, it will override the highlight behaviour, even if <see cref="EnableHighlight"/> is set to <c>true</c>.</para>
+        /// </summary>
+        [MvxSetToNullAfterBinding]
+        public ICommand HeaderLongClick
+        {
+            get => Adapter?.HeaderLongClick;
+            set
+            {
+                if (Adapter != null)
+                {
+                    Adapter.HeaderLongClick = value;
                 }
             }
         }
@@ -188,15 +237,6 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
                     Adapter.ItemSwipeLeft = value;
                 }
             }
-        }
-
-        /// <summary>
-        /// Whether to show or hide sticky header.
-        /// </summary>
-        public bool ShowStickyHeader
-        {
-            get => expandableRecyclerBaseView.ShowStickyHeader;
-            set => expandableRecyclerBaseView.ShowStickyHeader = value;
         }
 
         /// <summary>

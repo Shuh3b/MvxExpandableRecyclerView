@@ -35,7 +35,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         private IList<ITaskItem> viewItemsSource, itemsSource;
         private IDisposable subscription;
         private IMvxTemplateSelector itemTemplateSelector;
-        private ICommand itemSwipeRight, itemSwipeLeft;
+        private ICommand headerLongClick, itemSwipeRight, itemSwipeLeft;
         private ITaskItem selectedItem;
         private bool isDragging;
 
@@ -55,16 +55,38 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         { }
 
         /// <inheritdoc/>
-        public ITaskItem SelectedItem => selectedItem;
+        public bool EnableSelect { get; set; }
 
         /// <inheritdoc/>
-        public bool IsDragging => isDragging;
+        public bool EnableHighlight { get; set; }
 
         /// <inheritdoc/>
         public bool EnableDrag { get; set; }
 
         /// <inheritdoc/>
         public bool EnableSwipe { get; set; }
+
+        /// <inheritdoc/>
+        public ITaskItem SelectedItem => selectedItem;
+
+        /// <inheritdoc/>
+        public bool IsDragging => isDragging;
+
+        /// <inheritdoc/>
+        [MvxSetToNullAfterBinding]
+        public ICommand HeaderLongClick
+        {
+            get => headerLongClick;
+            set
+            {
+                if (ReferenceEquals(headerLongClick, value))
+                {
+                    return;
+                }
+
+                headerLongClick = value;
+            }
+        }
 
         /// <inheritdoc/>
         [MvxSetToNullAfterBinding]
@@ -145,7 +167,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
 
             MvxAndroidBindingContext itemBindingContext = new MvxAndroidBindingContext(parent.Context, BindingContext.LayoutInflaterHolder);
             View view = InflateViewForHolder(parent, viewType, itemBindingContext);
-            MvxSwipeRecyclerViewHolder viewHolder = new MvxSwipeRecyclerViewHolder(view, itemBindingContext)
+            MvxExpandableRecyclerViewHolder viewHolder = new MvxExpandableRecyclerViewHolder(view, itemBindingContext)
             {
                 Id = viewType
             };
@@ -163,14 +185,16 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
                 if (dataContext is ITaskHeader)
                 {
                     viewHolder.Click -= OnHeaderViewClick;
+                    viewHolder.LongClick -= OnHeaderViewLongClick;
                     viewHolder.Click += OnHeaderViewClick;
+                    viewHolder.LongClick += OnHeaderViewLongClick;
                 }
                 else
                 {
-                    viewHolder.Click -= base.OnItemViewClick;
-                    viewHolder.LongClick -= base.OnItemViewLongClick;
-                    viewHolder.Click += base.OnItemViewClick;
-                    viewHolder.LongClick += base.OnItemViewLongClick;
+                    viewHolder.Click -= OnItemViewClick;
+                    viewHolder.LongClick -= OnItemViewLongClick;
+                    viewHolder.Click += OnItemViewClick;
+                    viewHolder.LongClick += OnItemViewLongClick;
                 }
 
                 if (viewHolder.Id == Android.Resource.Layout.SimpleListItem1)
@@ -190,6 +214,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
                 if (viewHolder.DataContext is ITaskHeader)
                 {
                     viewHolder.Click -= OnHeaderViewClick;
+                    viewHolder.LongClick -= OnHeaderViewLongClick;
                 }
                 else
                 {
@@ -324,10 +349,51 @@ All changes must be synchronized on the main thread.");
         }
 
         /// <inheritdoc/>
+        protected override void OnItemViewClick(object sender, EventArgs e)
+        {
+            IMvxRecyclerViewHolder holder = (IMvxRecyclerViewHolder)sender;
+            if (EnableSelect)
+            {
+                IEnumerable<ITaskItem> selectedItems = itemsSource.Where(i => i.IsSelected);
+                foreach (ITaskItem selectedItem in selectedItems)
+                {
+                    selectedItem.IsSelected = false;
+                }
+
+                IEnumerable<ITaskHeader> selectedHeaders = GetHeaders().Where(i => i.IsSelected);
+                foreach (ITaskHeader selectedHeader in selectedHeaders)
+                {
+                    selectedHeader.IsSelected = false;
+                }
+
+                ITaskItem taskItem = (ITaskItem)holder.DataContext;
+                ITaskHeader header = GetHeader(taskItem);
+                taskItem.IsSelected = true;
+                header.IsSelected = true;
+            }
+            ExecuteCommandOnItem(ItemClick, holder.DataContext);
+        }
+
+        /// <inheritdoc/>
+        protected override void OnItemViewLongClick(object sender, EventArgs e)
+        {
+            IMvxRecyclerViewHolder holder = (IMvxRecyclerViewHolder)sender;
+            if (EnableHighlight)
+            {
+                ITaskItem taskItem = (ITaskItem)holder.DataContext;
+                ITaskHeader header = GetHeader(taskItem);
+                taskItem.IsHighlighted = !taskItem.IsHighlighted;
+                header.IsHighlighted = header.Items.Any(i => i.IsHighlighted);
+            }
+            ExecuteCommandOnItem(ItemLongClick, holder.DataContext);
+        }
+
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             subscription?.Dispose();
             subscription = null;
+            headerLongClick = null;
             itemSwipeLeft = null;
             itemSwipeRight = null;
             itemTemplateSelector = null;
@@ -405,17 +471,21 @@ All changes must be synchronized on the main thread.");
 
             ITaskHeader previousHeader = GetHeader(item);
             ITaskHeader newHeader = GetHeader(aboveItem);
-
+            bool sequenceEnabled = !newHeader.Rules.HasFlag(TaskHeaderRule.SequenceDisabled);
+            
             if (previousHeader.Header.Equals(newHeader.Header))
             {
                 int sequence = itemPosition - viewItemsSource.GetPosition(previousHeader) - 1;
-                item.Sequence = sequence;
+                if (sequenceEnabled)
+                {
+                    item.Sequence = sequence;
+                }
                 previousHeader.Items.Remove(item);
                 previousHeader.Items.Insert(sequence, item);
                 return;
             }
 
-            if (TaskHeaderDragInDisabled(newHeader, item, recyclerView))
+            if (TaskHeaderDragInOutDisabled(item, newHeader, recyclerView))
             {
                 return;
             }
@@ -425,7 +495,10 @@ All changes must be synchronized on the main thread.");
 
             if (newHeader.IsCollapsed)
             {
-                item.Sequence = null;
+                if (sequenceEnabled)
+                {
+                    item.Sequence = null;
+                }
                 newHeader.Items.Add(item);
                 viewItemsSource.Remove(item);
                 Notify(recyclerView, NotifyItemRemoved, itemPosition);
@@ -433,7 +506,10 @@ All changes must be synchronized on the main thread.");
             else
             {
                 int sequence = itemPosition - viewItemsSource.GetPosition(newHeader) - 1;
-                item.Sequence = sequence;
+                if (sequenceEnabled)
+                {
+                    item.Sequence = sequence;
+                }
                 newHeader.Items.Insert(sequence, item);
                 Notify(recyclerView, NotifyItemChanged, itemPosition);
             }
@@ -535,6 +611,24 @@ All changes must be synchronized on the main thread.");
             }
         }
 
+        /// <inheritdoc/>
+        public void OnHeaderLongClick(ITaskHeader header)
+        {
+            if (HeaderLongClick != null)
+            {
+                ExecuteCommandOnItem(HeaderLongClick, header);
+            }
+            else if (EnableHighlight)
+            {
+                bool highlight = header.Items.Any(i => !i.IsHighlighted);
+                header.IsHighlighted = highlight;
+                foreach (ITaskItem item in header.Items)
+                {
+                    item.IsHighlighted = highlight;
+                }
+            }
+        }
+
         /// <summary>
         /// Add headers to list, regardless of whether they have items associated with them or not.
         /// </summary>
@@ -551,10 +645,10 @@ All changes must be synchronized on the main thread.");
         /// <returns>List of items containing headers and items.</returns>
         protected virtual IList<ITaskItem> GenerateHeaders(IEnumerable<ITaskItem> items)
         {
-            var groupedItems = items.Where(i => !(i is ITaskHeader)).OrderBy(i => i.Header).GroupBy(i => i.Header);
+            IEnumerable<IGrouping<object, ITaskItem>> groupedItems = items.Where(i => !(i is ITaskHeader)).OrderBy(i => i.Header).GroupBy(i => i.Header);
             List<ITaskItem> taskItems = new List<ITaskItem>();
 
-            Dictionary<ITaskHeader, List<ITaskItem>> groupedHeaderItems = new Dictionary<ITaskHeader, List<ITaskItem>>();
+            IDictionary<ITaskHeader, List<ITaskItem>> groupedHeaderItems = new Dictionary<ITaskHeader, List<ITaskItem>>();
 
             foreach (IGrouping<object, ITaskItem> group in groupedItems)
             {
@@ -577,7 +671,7 @@ All changes must be synchronized on the main thread.");
                     groupedHeaderItems[generatedHeader] = new List<ITaskItem>(group);
                 }
             }
-            
+
             foreach (KeyValuePair<ITaskHeader, List<ITaskItem>> headerItems in groupedHeaderItems.OrderBy(i => i.Key.Header))
             {
                 headerItems.Key.Items.ReplaceWith(headerItems.Value.OrderByDescending(i => i.Sequence.HasValue).ThenBy(i => i.Sequence));
@@ -592,7 +686,7 @@ All changes must be synchronized on the main thread.");
         }
 
         /// <summary>
-        /// Generate a header with a given model.
+        /// <para>Generate a header with a given model.</para>
         /// <para>This method can be overriden to fine-tune the grouping logic to add/edit/group headers and/or specify header rules.</para>
         /// <para>IMPORTANT: If header is nullable, make sure to handle nullable type by using a non-null value. E.g. Header type with <c>int?</c> will use <c>-1</c> when <c>null</c>.</para>
         /// </summary>
@@ -611,9 +705,17 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
 
         private void OnHeaderViewClick(object sender, EventArgs e)
         {
-            if (sender is MvxRecyclerViewHolder holder && holder.DataContext is ITaskHeader header)
+            if (sender is IMvxRecyclerViewHolder holder && holder.DataContext is ITaskHeader header)
             {
                 OnHeaderClick(header);
+            }
+        }
+
+        private void OnHeaderViewLongClick(object sender, EventArgs e)
+        {
+            if (sender is IMvxRecyclerViewHolder holder && holder.DataContext is ITaskHeader header)
+            {
+                OnHeaderLongClick(header);
             }
         }
 
@@ -693,10 +795,7 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
 
         private void GenerateInitialHeaders()
         {
-            if (viewItemsSource == null)
-            {
-                viewItemsSource = new List<ITaskItem>();
-            }
+            viewItemsSource ??= new List<ITaskItem>();
 
             foreach (THeader initialHeader in AddInitialHeaders())
             {
@@ -738,13 +837,13 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
             return true;
         }
 
-        private bool TaskHeaderDragInDisabled(ITaskHeader newHeader, ITaskItem item, RecyclerView recyclerView = null)
+        private bool TaskHeaderDragInOutDisabled(ITaskItem item, ITaskHeader header, RecyclerView recyclerView = null)
         {
-            if (newHeader?.Rules.HasFlag(TaskHeaderRule.DragInDisabled) == true)
+            ITaskHeader currentHeader = GetHeader(item);
+            if (header.Rules.HasFlag(TaskHeaderRule.DragInDisabled) == true || currentHeader.Rules.HasFlag(TaskHeaderRule.DragOutDisabled) == true)
             {
-                ITaskHeader currentHeader = GetHeader(item);
                 int currentHeaderPosition = viewItemsSource.GetPosition(currentHeader);
-                bool positiveDirection = currentHeaderPosition < viewItemsSource.GetPosition(newHeader);
+                bool positiveDirection = currentHeaderPosition < viewItemsSource.GetPosition(header);
 
                 int newPosition;
                 int newPositionInHeader;
@@ -792,7 +891,7 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
             return false;
         }
 
-        #region Helper methods to prevent edge-case scenario where app sometimes crashes when dragging item above header and RecyclerView is scrolling. This happens in the "OnClearView" method where "NotifyItem****" methods are called before layout is computed.
+        #region Helper methods to prevent edge-case scenario where app sometimes crashes when dragging item above header and RecyclerView is scrolling. This happens in the "OnClearView" method where "NotifyItem____" methods are called before layout is computed.
 
         /// <summary>
         /// This helper method prevents crashes when dataset has been modified before the RecyclerView has finished computing its layout.

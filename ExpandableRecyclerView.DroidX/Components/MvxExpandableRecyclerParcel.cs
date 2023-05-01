@@ -11,6 +11,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
     /// </summary>
     internal class MvxExpandableRecyclerParcel : Object, IParcelable
     {
+        private const string CountKey = "count";
         private static readonly ParcelableCreator<MvxExpandableRecyclerParcel> creator = new ParcelableCreator<MvxExpandableRecyclerParcel>((parcel) => new MvxExpandableRecyclerParcel(parcel));
 
         [ExportField("CREATOR")]
@@ -27,7 +28,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             Bundle bundle = parcel.ReadBundle();
             if (bundle != null)
             {
-                int count = bundle.GetInt("count", 0);
+                int count = bundle.GetInt(CountKey, 0);
                 IDictionary<int, bool> headers = new Dictionary<int, bool>();
 
                 for (int i = 0; i < count; i++)
@@ -55,7 +56,7 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
             dest.WriteInt(ShowStickyHeader ? 1 : 0);
 
             Bundle bundle = new Bundle();
-            bundle.PutInt("count", Headers?.Count ?? 0);
+            bundle.PutInt(CountKey, Headers?.Count ?? 0);
             foreach (KeyValuePair<int, bool> header in Headers)
             {
                 bundle.PutBoolean(header.Key.ToString(), header.Value);
