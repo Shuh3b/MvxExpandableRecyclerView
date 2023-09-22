@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Windows.Input;
 
 namespace MvvmCross.ExpandableRecyclerView.Core
 {
@@ -31,6 +32,17 @@ namespace MvvmCross.ExpandableRecyclerView.Core
         /// The position of the item within the header.
         /// </summary>
         int? Sequence { get; set; }
+
+        /// <summary>
+        /// Command that selects this item as part of a multi-select process.
+        /// </summary>
+        ICommand HighlightCommand { get; }
+
+        /// <summary>
+        /// Sets the command used for highlighting this item.
+        /// </summary>
+        /// <param name="command">Highlight <see cref="ICommand"/>.</param>
+        void SetHighlightCommand(ICommand command);
     }
 
     /// <summary>

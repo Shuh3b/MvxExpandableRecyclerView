@@ -1,5 +1,6 @@
 ﻿using Android.Runtime;
 using Android.Views;
+using MvvmCross.Commands;
 using MvvmCross.DroidX.RecyclerView;
 using MvvmCross.ExpandableRecyclerView.Core;
 using MvvmCross.Platforms.Android.Binding.BindingContext;
@@ -49,6 +50,13 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         { }
 
         /// <inheritdoc/>
+        public new ITaskItem DataContext
+        {
+            get => (ITaskItem)base.DataContext;
+            set => base.DataContext = value;
+        }
+
+        /// <inheritdoc/>
         public View Foreground => foreground ?? ItemView;
 
         /// <inheritdoc/>
@@ -67,11 +75,19 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX.Components
         }
 
         /// <inheritdoc/>
+        public event Action<ITaskItem> HighlightClick
+        {
+            add => DataContext.SetHighlightCommand(new MvxCommand(() => value?.Invoke(DataContext)));
+            remove => DataContext.SetHighlightCommand(null);
+        }
+
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             foreground = null;
             swipeLeftBackground = null;
             swipeRightBackground = null;
+            DataContext.SetHighlightCommand(null);
 
             base.Dispose(disposing);
         }

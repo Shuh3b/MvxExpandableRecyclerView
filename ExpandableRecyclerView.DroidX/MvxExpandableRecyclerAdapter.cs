@@ -178,23 +178,27 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         /// <inheritdoc/>
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
-            var dataContext = GetItem(position);
-            if (holder is IMvxRecyclerViewHolder viewHolder)
+            object dataContext = GetItem(position);
+            if (holder is IMvxExpandableRecyclerViewHolder viewHolder)
             {
-                viewHolder.DataContext = dataContext;
+                viewHolder.DataContext = (ITaskItem)dataContext;
                 if (dataContext is ITaskHeader)
                 {
                     viewHolder.Click -= OnHeaderViewClick;
                     viewHolder.LongClick -= OnHeaderViewLongClick;
+                    viewHolder.HighlightClick -= HighlightHeader;
                     viewHolder.Click += OnHeaderViewClick;
                     viewHolder.LongClick += OnHeaderViewLongClick;
+                    viewHolder.HighlightClick += HighlightHeader;
                 }
                 else
                 {
                     viewHolder.Click -= OnItemViewClick;
                     viewHolder.LongClick -= OnItemViewLongClick;
+                    viewHolder.HighlightClick -= HighlightItem;
                     viewHolder.Click += OnItemViewClick;
                     viewHolder.LongClick += OnItemViewLongClick;
+                    viewHolder.HighlightClick += HighlightItem;
                 }
 
                 if (viewHolder.Id == Android.Resource.Layout.SimpleListItem1)
@@ -209,17 +213,19 @@ namespace MvvmCross.ExpandableRecyclerView.DroidX
         /// <inheritdoc/>
         public override void OnViewRecycled(Java.Lang.Object holder)
         {
-            if (holder is IMvxRecyclerViewHolder viewHolder)
+            if (holder is IMvxExpandableRecyclerViewHolder viewHolder)
             {
                 if (viewHolder.DataContext is ITaskHeader)
                 {
                     viewHolder.Click -= OnHeaderViewClick;
                     viewHolder.LongClick -= OnHeaderViewLongClick;
+                    viewHolder.HighlightClick -= HighlightHeader;
                 }
                 else
                 {
                     viewHolder.Click -= OnItemViewClick;
                     viewHolder.LongClick -= OnItemViewLongClick;
+                    viewHolder.HighlightClick -= HighlightItem;
                 }
 
                 viewHolder.OnViewRecycled();
@@ -351,25 +357,10 @@ All changes must be synchronized on the main thread.");
         /// <inheritdoc/>
         protected override void OnItemViewClick(object sender, EventArgs e)
         {
-            IMvxRecyclerViewHolder holder = (IMvxRecyclerViewHolder)sender;
+            IMvxExpandableRecyclerViewHolder holder = (IMvxExpandableRecyclerViewHolder)sender;
             if (EnableSelect)
             {
-                IEnumerable<ITaskItem> selectedItems = itemsSource.Where(i => i.IsSelected);
-                foreach (ITaskItem selectedItem in selectedItems)
-                {
-                    selectedItem.IsSelected = false;
-                }
-
-                IEnumerable<ITaskHeader> selectedHeaders = GetHeaders().Where(i => i.IsSelected);
-                foreach (ITaskHeader selectedHeader in selectedHeaders)
-                {
-                    selectedHeader.IsSelected = false;
-                }
-
-                ITaskItem taskItem = (ITaskItem)holder.DataContext;
-                ITaskHeader header = GetHeader(taskItem);
-                taskItem.IsSelected = true;
-                header.IsSelected = true;
+                SelectItem(holder.DataContext);
             }
             ExecuteCommandOnItem(ItemClick, holder.DataContext);
         }
@@ -377,13 +368,10 @@ All changes must be synchronized on the main thread.");
         /// <inheritdoc/>
         protected override void OnItemViewLongClick(object sender, EventArgs e)
         {
-            IMvxRecyclerViewHolder holder = (IMvxRecyclerViewHolder)sender;
+            IMvxExpandableRecyclerViewHolder holder = (IMvxExpandableRecyclerViewHolder)sender;
             if (EnableHighlight)
             {
-                ITaskItem taskItem = (ITaskItem)holder.DataContext;
-                ITaskHeader header = GetHeader(taskItem);
-                taskItem.IsHighlighted = !taskItem.IsHighlighted;
-                header.IsHighlighted = header.Items.Any(i => i.IsHighlighted);
+                HighlightItem(holder.DataContext);
             }
             ExecuteCommandOnItem(ItemLongClick, holder.DataContext);
         }
@@ -397,6 +385,11 @@ All changes must be synchronized on the main thread.");
             itemSwipeLeft = null;
             itemSwipeRight = null;
             itemTemplateSelector = null;
+            foreach (ITaskItem item in itemsSource)
+            {
+                item.SetHighlightCommand(null);
+            }
+
             base.Dispose(disposing);
         }
 
@@ -423,7 +416,7 @@ All changes must be synchronized on the main thread.");
         /// <inheritdoc/>
         public virtual void OnSwiped(RecyclerView.ViewHolder viewHolder, int direction)
         {
-            if (viewHolder is IMvxRecyclerViewHolder holder)
+            if (viewHolder is IMvxExpandableRecyclerViewHolder holder)
             {
                 if (direction == ItemTouchHelper.Left)
                 {
@@ -472,7 +465,7 @@ All changes must be synchronized on the main thread.");
             ITaskHeader previousHeader = GetHeader(item);
             ITaskHeader newHeader = GetHeader(aboveItem);
             bool sequenceEnabled = !newHeader.Rules.HasFlag(TaskHeaderRule.SequenceDisabled);
-            
+
             if (previousHeader.Header.Equals(newHeader.Header))
             {
                 int sequence = itemPosition - viewItemsSource.GetPosition(previousHeader) - 1;
@@ -620,12 +613,7 @@ All changes must be synchronized on the main thread.");
             }
             else if (EnableHighlight)
             {
-                bool highlight = header.Items.Any(i => !i.IsHighlighted);
-                header.IsHighlighted = highlight;
-                foreach (ITaskItem item in header.Items)
-                {
-                    item.IsHighlighted = highlight;
-                }
+                HighlightHeader(header);
             }
         }
 
@@ -705,7 +693,7 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
 
         private void OnHeaderViewClick(object sender, EventArgs e)
         {
-            if (sender is IMvxRecyclerViewHolder holder && holder.DataContext is ITaskHeader header)
+            if (sender is IMvxExpandableRecyclerViewHolder holder && holder.DataContext is ITaskHeader header)
             {
                 OnHeaderClick(header);
             }
@@ -713,7 +701,7 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
 
         private void OnHeaderViewLongClick(object sender, EventArgs e)
         {
-            if (sender is IMvxRecyclerViewHolder holder && holder.DataContext is ITaskHeader header)
+            if (sender is IMvxExpandableRecyclerViewHolder holder && holder.DataContext is ITaskHeader header)
             {
                 OnHeaderLongClick(header);
             }
@@ -889,6 +877,43 @@ If header is nullable, make sure to override {nameof(GenerateHeader)}() and hand
             }
 
             return false;
+        }
+
+        private void SelectItem(ITaskItem taskItem)
+        {
+            IEnumerable<ITaskItem> selectedItems = itemsSource.Where(i => i.IsSelected);
+            foreach (ITaskItem selectedItem in selectedItems)
+            {
+                selectedItem.IsSelected = false;
+            }
+
+            IEnumerable<ITaskHeader> selectedHeaders = GetHeaders().Where(i => i.IsSelected);
+            foreach (ITaskHeader selectedHeader in selectedHeaders)
+            {
+                selectedHeader.IsSelected = false;
+            }
+
+            ITaskHeader header = GetHeader(taskItem);
+            taskItem.IsSelected = true;
+            header.IsSelected = true;
+        }
+
+        private void HighlightItem(ITaskItem taskItem)
+        {
+            ITaskHeader header = GetHeader(taskItem);
+            taskItem.IsHighlighted = !taskItem.IsHighlighted;
+            header.IsHighlighted = header.Items.Any(i => i.IsHighlighted);
+        }
+
+        private void HighlightHeader(ITaskItem taskItem)
+        {
+            ITaskHeader header = (ITaskHeader)taskItem;
+            bool highlight = header.Items.Any(i => !i.IsHighlighted);
+            header.IsHighlighted = highlight;
+            foreach (ITaskItem item in header.Items)
+            {
+                item.IsHighlighted = highlight;
+            }
         }
 
         #region Helper methods to prevent edge-case scenario where app sometimes crashes when dragging item above header and RecyclerView is scrolling. This happens in the "OnClearView" method where "NotifyItem____" methods are called before layout is computed.

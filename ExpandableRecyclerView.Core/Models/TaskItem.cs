@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 
 namespace MvvmCross.ExpandableRecyclerView.Core
 {
@@ -16,6 +17,7 @@ namespace MvvmCross.ExpandableRecyclerView.Core
         private int? sequence;
         private bool isSelected;
         private bool isHighlighted;
+        private ICommand highlightCommand;
 
         /// <summary>
         /// Constructor.
@@ -43,6 +45,12 @@ namespace MvvmCross.ExpandableRecyclerView.Core
 
         /// <inheritdoc/>
         public int? Sequence { get => sequence; set => SetProperty(ref sequence, value); }
+
+        /// <inheritdoc/>
+        public ICommand HighlightCommand => highlightCommand;
+
+        /// <inheritdoc/>
+        public void SetHighlightCommand(ICommand command) => highlightCommand = command;
 
         /// <inheritdoc/>
         public event PropertyChangedEventHandler PropertyChanged;
